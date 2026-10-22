@@ -10,19 +10,19 @@ Este proyecto utiliza **Spec-Driven Development (SDD)**. La especificación es l
 
 ## Documentos de referencia (leer antes de escribir código)
 
-- `specs/reservas-laboratorio/[spec.md](http://spec.md)` — qué se construye, reglas, supuestos y criterios de aceptación.
-- `specs/reservas-laboratorio/[plan.md](http://plan.md)` — cómo se construye (arquitectura, decisiones técnicas).
-- `specs/reservas-laboratorio/[tasks.md](http://tasks.md)` — tareas ordenadas y su estado.
-- `docs/agent/[progreso.md](http://progreso.md)` — progreso y decisiones vigentes (memoria versionada entre sesiones).
+- `specs/reservas-laboratorio/spec.md` — qué se construye, reglas, supuestos y criterios de aceptación.
+- `specs/reservas-laboratorio/plan.md` — cómo se construye (arquitectura, decisiones técnicas).
+- `specs/reservas-laboratorio/tasks.md` — tareas ordenadas y su estado.
+- `docs/agent/progreso.md` — progreso y decisiones vigentes (memoria versionada entre sesiones).
 
 ## Protocolo SDD (ESTRICTO)
 
-1. ANTES de crear o modificar código fuente, lee [`spec.md`](http://spec.md), [`plan.md`](http://plan.md), [`tasks.md`](http://tasks.md) y `docs/agent/[progreso.md](http://progreso.md)`.
+1. ANTES de crear o modificar código fuente, lee [`spec.md`](http://spec.md), [`plan.md`](http://plan.md), [`tasks.md`](http://tasks.md) y `docs/agent/progreso.md`.
 2. No escribas código que no esté respaldado por [`spec.md`](http://spec.md) y [`plan.md`](http://plan.md). Si falta algo, propón el cambio a la especificación y espera aprobación humana; no lo resuelvas en silencio.
 3. Identifica la primera tarea pendiente de [`tasks.md`](http://tasks.md) e implementa **únicamente** esa tarea.
 4. Escribe primero la prueba de la regla de negocio y después la implementación cuando la tarea toque reglas del dominio.
 5. Ejecuta las pruebas y el linter. Corrige los errores antes de continuar.
-6. Marca la tarea como `[x]` solo después de que las pruebas pasen con éxito, y registra el resultado real (comando, versión, salida resumida) en `docs/agent/[progreso.md](http://progreso.md)`.
+6. Marca la tarea como `[x]` solo después de que las pruebas pasen con éxito, y registra el resultado real (comando, versión, salida resumida) en `docs/agent/progreso.md`.
 7. No implementes tareas futuras salvo petición explícita del usuario.
 8. Todo cambio en la especificación se hace en un commit propio, con el motivo en el mensaje, para que la evolución sea recuperable en Git.
 
