@@ -1,23 +1,22 @@
 # Preparación del agente
 
 Registro de cómo se preparó y delimitó el trabajo delegado al agente, según
-`specs/reservas-laboratorio/plan.md` §12. Se actualiza si cambian el entorno, el modelo,
-las instrucciones o los permisos.
+`specs/reservas-laboratorio/plan.md` . Se actualiza si cambian el entorno, el modelo, las instrucciones o los permisos.
 
 ## 1. Entorno de ejecución (observado el 2026-10-22)
 
-| Elemento                | Valor                                                                 |
-| ----------------------- | --------------------------------------------------------------------- |
-| Arnés                   | OpenCode, modo código (herramientas de lectura, edición y shell)      |
-| Modelo                  | **Big Pickle**, id `opencode/big-pickle`, proveedor OpenCode          |
+| Elemento                | Valor                                                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Arnés                   | OpenCode, modo código (herramientas de lectura, edición y shell)                                           |
+| Modelo                  | **Big Pickle**, id `opencode/big-pickle`, proveedor OpenCode                                               |
 | Versión del modelo      | **No visible** desde el entorno; el catálogo la publica el 2025-10-17 |
-| Sistema operativo       | Windows; shell PowerShell 5.1.26100.9711                              |
-| Repositorio             | `...\SDD\Desarrollo-de-un-sistema-de-reservas-con-agentes`            |
-| Rama de trabajo         | `main`                                                                |
-| Git                     | 2.46.2.windows.1                                                      |
-| Python                  | **No disponible**: `python` resuelve al alias de Microsoft Store y `py` no existe |
-| Reflex / pytest / ruff  | No instalados                                                         |
-| Red                     | No utilizada en esta sesión                                           |
+| Sistema operativo       | Windows; shell PowerShell 5.1.26100.9711                                         |
+| Repositorio            | [https://github.com/eme-19-87/sistema-reservas-agentes.git](https://github.com/eme-19-87/sistema-reservas-agentes.git) |
+| Rama de trabajo        | `main`                                                                                                                                                                    |
+| Git                     | 2.46.2.windows.1                                                                                           |
+| Python                  | **No disponible**: `python` resuelve al alias de Microsoft Store y `py` no existe                                      |
+| Reflex / pytest / ruff  | No instalados                                                                                              |
+| Red                     | No utilizada en esta sesión                                                                                |
 
 Consecuencia: las tareas que requieren ejecutar `pytest` y `ruff` (desde el Paso 3) no
 pueden validarse hasta instalar Python 3.12 (mínimo 3.11). Esa instalación es una
@@ -45,7 +44,7 @@ porque:
 - opera directamente sobre el repositorio local (lectura y edición de archivos, Git, shell),
   que es lo que el protocolo SDD exige para cerrar cada tarea con evidencia;
 - no requiere cuenta de modelo ni servicios externos en tiempo de ejecución de la
-  aplicación, en línea con el requisito de reproducibilidad de `spec.md` §16;
+  aplicación, en línea con el requisito de reproducibilidad de `spec.md`;
 - el trabajo queda revisable por una persona mediante `git diff`, la salida de `pytest` y
   la comprobación manual en el navegador, sin depender del historial de conversación.
 
