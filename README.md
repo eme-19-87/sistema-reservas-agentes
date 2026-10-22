@@ -61,7 +61,7 @@ Reglas principales (versión normativa en [`spec.md`](http://spec.md)):
 
 Ejemplo: con `MIC-01` reservado de 10:00 a 11:00, se rechaza 10:30–11:30 y se permite 11:00–12:00; `MIC-02` puede reservarse de 10:00 a 11:00.
 
-Supuestos, límites de fechas y criterios de aceptación: ver [`spec.md`](http://spec.md) §8 y §20. La versión inicial y sus cambios significativos se recuperan en el historial de Git.
+Supuestos, límites de fechas y criterios de aceptación: ver [`spec.md`](http://spec.md). La versión inicial y sus cambios significativos se recuperan en el historial de Git.
 
 ## 2. Solución
 
