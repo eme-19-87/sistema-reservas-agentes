@@ -1,3 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Datos generados (la base de reservas no se versiona)
+data/*.db
+
+# Artefactos generados por Reflex
+.web/
+.states/
+assets/external/
+
 # Dependencias
 node_modules/
 
