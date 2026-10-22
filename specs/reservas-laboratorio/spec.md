@@ -144,7 +144,7 @@ Con `MIC-01` reservado de 10:00 a 11:00:
 La creación de una reserva y la consulta de disponibilidad aplican **las mismas validaciones, en el mismo orden**, mediante la misma función de dominio. La primera que falla determina el error.
 
 1. **Unidad conocida:** el ID existe en el inventario.
-2. **Solicitante:** no vacío ni compuesto solo por espacios. *(Se omite en la consulta de disponibilidad, que no recibe solicitante.)*
+2. **Solicitante:** no vacío, no compuesto sólo por números, sin caracteres especiales, sí se permiten acentos y diéresis, no compuesto solo por espacios. *(Se omite en la consulta de disponibilidad, que no recibe solicitante.)*
 3. **Fechas y horas válidas:** formato `YYYY-MM-DDTHH:MM`, fecha de calendario existente, sin zona horaria.
 4. **Orden:** `inicio` estrictamente anterior a `fin`.
 5. **Límites de tiempo:** fecha pasada, duración máxima y anticipación máxima (ver sección 8).
@@ -153,16 +153,16 @@ La creación de una reserva y la consulta de disponibilidad aplican **las mismas
 ### Errores de dominio
 
 
-| Condición                                              | Error                 |
-| ------------------------------------------------------ | --------------------- |
-| Unidad inexistente                                     | `UnidadDesconocida`   |
-| Solicitante vacío o solo espacios                      | `SolicitanteInvalido` |
-| Fecha con formato o calendario inválido, o con offset  | `FechaInvalida`       |
-| `inicio >= fin`                                        | `IntervaloInvalido`   |
-| Inicio en el pasado, duración o anticipación excedidas | `LimiteExcedido`      |
-| Superposición con una reserva activa                   | `Superposicion`       |
-| Reserva inexistente al cancelar                        | `ReservaNoEncontrada` |
-| Reserva ya cancelada al cancelar                       | `ReservaYaCancelada`  |
+| Condición                                                                           | Error                 |
+| ----------------------------------------------------------------------------------- | --------------------- |
+| Unidad inexistente                                                                  | `UnidadDesconocida`   |
+| Solicitante vacío, o solo espacios, o con caracteres especiales, o sólo con números | `SolicitanteInvalido` |
+| Fecha con formato o calendario inválido, o con offset                               | `FechaInvalida`       |
+| `inicio >= fin`                                                                     | `IntervaloInvalido`   |
+| Inicio en el pasado, duración o anticipación excedidas                              | `LimiteExcedido`      |
+| Superposición con una reserva activa                                                | `Superposicion`       |
+| Reserva inexistente al cancelar                                                     | `ReservaNoEncontrada` |
+| Reserva ya cancelada al cancelar                                                    | `ReservaYaCancelada`  |
 
 
 Cada error tiene un mensaje claro en español. El mensaje de `Superposicion` identifica la reserva activa en conflicto (su ID).
