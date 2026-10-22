@@ -147,3 +147,22 @@ ningún comando de red.
 - Persisten tres aprobaciones pendientes: instalar Python (bloquea el Paso 3), aprobar la red
   de `reflex init` (Paso 12) y confirmar la implementación de la nueva validación del
   solicitante (Paso 5).
+
+## Estado al suspender la sesión (2026-10-22)
+
+**Motivo:** la persona autora suspendió el trabajo para continuar en otro momento.
+
+- **Tareas completadas:** Paso 1 y Paso 2.
+- **Siguiente tarea pendiente:** Paso 3 — Proyecto Python y herramientas (`pyproject.toml`,
+  `requirements-dev.txt` con `reflex==0.10.0`, `pytest` y `ruff` fijados; estructura
+  `src/reservas/` y `tests/conftest.py`; validar `pytest -q` y `ruff check .`).
+- **Bloqueo conocido:** Python no está instalado en el equipo. El Paso 3 no puede validarse
+  hasta instalar Python 3.12 (mínimo 3.11) con aprobación de la persona autora. Si se
+  instala, registrar la versión real en este archivo.
+- **Aprobaciones pendientes:** instalar Python; acceso a red para `reflex init` (Paso 12);
+  confirmar la implementación de la validación del solicitante precisada en `spec.md`
+  (commit `1d35404`, corresponde al Paso 5).
+- **Estado del repositorio:** rama `main`, árbol de trabajo limpio, remoto `origin`
+  configurado, ningún cambio en stash. No se hizo `git push` (requiere aprobación).
+- **Cómo reanudar:** leer `CLAUDE.md`, `spec.md`, `plan.md`, `tasks.md` y este archivo;
+  comprobar `git status`; implementar únicamente el Paso 3 y no avanzar al 4 sin indicación.
