@@ -4,7 +4,7 @@
 
 ## Fase 0 — Especificación y preparación del agente
 
-- \[ \] **Paso 1 — Repositorio y especificación inicial**
+- \[x\] **Paso 1 — Repositorio y especificación inicial**
   - Inicializar Git y `.gitignore` (`.venv/`, `data/*.db`, `.web/`, `.states/`, `assets/external/`, `__pycache__/`).
   - Incorporar [`CLAUDE.md`](http://CLAUDE.md), `specs/reservas-laboratorio/[spec.md](http://spec.md)`, [`plan.md`](http://plan.md) y [`tasks.md`](http://tasks.md).
   - Commit inicial con la versión inicial de la especificación (base para recuperar su evolución).
