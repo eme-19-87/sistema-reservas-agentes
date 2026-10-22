@@ -8,7 +8,7 @@
   - Inicializar Git y `.gitignore` (`.venv/`, `data/*.db`, `.web/`, `.states/`, `assets/external/`, `__pycache__/`).
   - Incorporar [`CLAUDE.md`](http://CLAUDE.md), `specs/reservas-laboratorio/[spec.md](http://spec.md)`, [`plan.md`](http://plan.md) y [`tasks.md`](http://tasks.md).
   - Commit inicial con la versión inicial de la especificación (base para recuperar su evolución).
-- \[ \] **Paso 2 — Preparación del agente y registro**
+- \[x\] **Paso 2 — Preparación del agente y registro**
   - Crear `docs/agent/preparacion-agente.md`: entorno, versión y modelo (o «no visible»), función, motivo de la elección, instrucciones usadas (extracto saneado de [`CLAUDE.md`](http://CLAUDE.md)), contexto incluido y excluido, herramientas y permisos, aprobaciones previstas.
   - Crear `docs/agent/progreso.md`(memoria versionada) y `docs/agent/delegacion.md` (plantilla de episodios).
   - Incorporar el skill `.claude/skills/reflex-rules/SKILL.md` y registrar su uso real como adaptación específica.
