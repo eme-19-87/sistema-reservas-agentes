@@ -13,6 +13,16 @@ data/*.db
 .states/
 assets/external/
 
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Editor
+.vscode/
+.idea/
+
 # Dependencias
 node_modules/
 
