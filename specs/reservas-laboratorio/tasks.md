@@ -19,7 +19,7 @@
   - `pyproject.toml` (`requires-python >=3.11`), `requirements-dev.txt` con `reflex==0.10.0`, `pytest` y `ruff` fijados.
   - Estructura `src/reservas/` y `tests/` con [`conftest.py`](http://conftest.py) (BD temporal y reloj fijo).
   - Validar `pytest -q` (sin pruebas aún) y `ruff check .`; registrar versiones de Python, Reflex, pytest y ruff.
-- \[ \] **Paso 4 — Inventario**
+- \[x\] **Paso 4 — Inventario**
   - `data/inventario.json` con `MIC-01`, `MIC-02`, `OSC-01`, `MUL-01`, `FUE-01`.
   - [`inventario.py`](http://inventario.py) de solo lectura.
   - Prueba (`test_inventario.py`): se leen las 5 unidades con sus equipos.

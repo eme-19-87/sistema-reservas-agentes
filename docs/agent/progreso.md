@@ -144,9 +144,48 @@ ningún comando de red.
   del modelo queda atribuida a la persona autora.
 - No se inventaron episodios de delegación: los tres obligatorios quedan pendientes hasta
   que ocurran (Paso 24).
-- Persisten tres aprobaciones pendientes: instalar Python (bloquea el Paso 3), aprobar la red
-  de `reflex init` (Paso 12) y confirmar la implementación de la nueva validación del
-  solicitante (Paso 5).
+- Persisten tres aprobaciones pendientes: instalar Python (bloquea la ejecución de
+  `pytest` y `ruff` a partir del Paso 3), aprobar la red de `reflex init` (Paso 12) y
+  confirmar la implementación de la nueva validación del solicitante (Paso 5).
+
+## Paso 4 — Inventario
+
+**Estado:** completado.
+
+**Objetivo:** crear el inventario precargado y un módulo de solo lectura, con su prueba
+correspondiente.
+
+**Trabajo realizado:**
+
+- Se creó `data/inventario.json` con las 5 unidades del inventario: `MIC-01` y `MIC-02`
+  (Microscopio digital), `OSC-01` (Osciloscopio), `MUL-01` (Multímetro), `FUE-01`
+  (Fuente de alimentación).
+- Se creó `src/reservas/inventario.py` con funciones de solo lectura: `cargar_inventario`,
+  `obtener_inventario` y `ruta_inventario`. No hay administración de inventario.
+- Se creó `tests/test_inventario.py` con la prueba exigida: se leen las 5 unidades con
+  sus equipos.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ Get-Content data/inventario.json | ConvertFrom-Json | Measure-Object
+Count: 5
+$ Test-Path src/reservas/inventario.py, tests/test_inventario.py
+True True
+```
+
+**Resultado:** archivos creados correctamente. **No se ejecutó `pytest -q`** porque Python
+no está disponible en el entorno. Pendiente de instalar Python para validar la prueba.
+
+**Pasos no ejecutados:** `pytest -q` (prueba `test_inventario.py` sin ejecutar en esta
+sesión).
+
+**Decisiones:**
+
+- El módulo es de solo lectura y usa `json` de la biblioteca estándar, sin dependencias
+  externas.
+- Se añade `obtener_inventario()` indexado por ID para facilitar su uso posterior sin
+  cambiar el comportamiento requerido.
 
 ## Estado al suspender la sesión (2026-10-22)
 
