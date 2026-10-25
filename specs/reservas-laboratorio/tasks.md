@@ -26,7 +26,7 @@
 - \[x\] **Paso 5 — Dominio: validaciones**
   - Entidades, excepciones de dominio y parseo de fechas `YYYY-MM-DDTHH:MM`.
   - Pruebas primero (`test_validaciones.py`): unidad desconocida, solicitante vacío o solo espacios, fecha inválida, fecha con offset, `inicio >= fin`, fecha pasada, duración máxima, anticipación máxima; límites exactos válidos (8 h, 90 días, inicio = ahora).
-- \[ \] **Paso 6 — Dominio: solapamiento**
+- \[x\] **Paso 6 — Dominio: solapamiento**
   - `hay_solapamiento` con intervalos `[inicio, fin)` y `validar_solicitud_intervalo`.
   - Pruebas primero (`test_solapamiento.py`): 10:30–11:30 rechazado con 10:00–11:00; contención; intervalo idéntico; 11:00–12:00 permitido; 09:00–10:00 permitido; unidades distintas simultáneas.
   - Ejecutar los casos de borde obligatorios y registrarlos (adaptación «turnos consecutivos»).
