@@ -416,3 +416,22 @@ tests\test_persistencia.py .                                             [100%]
 ```
 
 **Resultado:** 1/1 prueba pasada.
+
+
+## Paso 10 - CLI de mantenimiento init-db
+Estado: completado
+Fecha: 2026-10-25
+Trabajo realizado: cli.py, __main__.py para init-db idempotente con --reset y --yes. tests/test_cli.py.
+Verificacion: tests/test_cli.py 3 passed
+
+## Paso 11 - Frontera de capas
+Estado: completado
+Fecha: 2026-10-25
+Trabajo realizado: tests/test_frontera_reflex.py verifica que ningun modulo de src/reservas/ importa reflex.
+Verificacion: tests/test_frontera_reflex.py 1 passed
+
+## Paso 12 - Scaffold de Reflex
+Estado: completado
+Fecha: 2026-10-25
+Trabajo realizado: rxconfig.py app_name=reservas_ui, modulo reservas_ui/ con pagina / minima. Reflex 0.10.0.
+Verificacion: reflex 0.10.0
