@@ -64,7 +64,15 @@ def test_limite_consecutivo_0900_1000_permitido():
     reservas_activas = [
         {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
     ]
-    validar_solicitud_intervalo("MIC-01", "2026-10-22T09:00", "2026-10-22T10:00", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+    validar_solicitud_intervalo(
+        "MIC-01",
+        "2026-10-22T09:00",
+        "2026-10-22T10:00",
+        "Ana",
+        ahora=datetime(2026, 10, 22, 8, 0),
+        inventario=inventario_test(),
+        reservas_activas=reservas_activas,
+    )
 
 
 def test_unidades_distintas_simultaneas():

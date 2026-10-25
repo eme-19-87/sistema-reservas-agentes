@@ -30,25 +30,25 @@
   - `hay_solapamiento` con intervalos `[inicio, fin)` y `validar_solicitud_intervalo`.
   - Pruebas primero (`test_solapamiento.py`): 10:30–11:30 rechazado con 10:00–11:00; contención; intervalo idéntico; 11:00–12:00 permitido; 09:00–10:00 permitido; unidades distintas simultáneas.
   - Ejecutar los casos de borde obligatorios y registrarlos (adaptación «turnos consecutivos»).
-- \[ \] **Paso 7 — Repositorio SQLite**
+- \[x\] **Paso 7 — Repositorio SQLite**
   - Esquema `unidades` y `reservas` con restricciones, `PRAGMA foreign_keys = ON`, índice.
   - Siembra de unidades idempotente; inserción dentro de `BEGIN IMMEDIATE`.
   - Pruebas (`test_repositorio.py`): esquema creado, siembra repetida sin duplicados, ID nunca reutilizado.
-- \[ \] **Paso 8 — Servicio de reservas**
+- \[x\] **Paso 8 — Servicio de reservas**
   - `crear_reserva`, `cancelar_reserva`, `listar_reservas` (filtros por unidad y estado) y `consultar_disponibilidad` usando la **misma** validación y regla de solapamiento. `listar_reservas` ordena por inicio y luego ID; los conflictos (ID, solicitante, intervalo) se exponen para los mensajes.
-  - Pruebas: `test_creacion.py`, `test_cancelacion.py` (conserva ID y datos, libera horario, doble cancelación e ID inexistente rechazados, cancelar reserva ya iniciada permitido), `test_disponibilidad.py`(misma decisión que reservar; cancelada no bloquea; no crea reservas).
-- \[ \] **Paso 9 — Persistencia tras reinicio (automática)**
+  - Pruebas: `test_creacion.py`, `test_cancelacion.py` (conserva ID y datos, libera horario, doble cancelación e ID inexistente rechazados, cancelar reserva ya iniciada permitido), `test_disponibilidad.py` (misma decisión que reservar; cancelada no bloquea; no crea reservas).
+- \[x\] **Paso 9 — Persistencia tras reinicio (automática)**
   - `test_persistencia.py`: crear activas y una cancelada, cerrar conexión, reabrir sobre el mismo archivo y comparar contenido.
   - Registrar la ejecución (adaptación «procedimiento de persistencia»).
-- \[ \] **Paso 10 — CLI de mantenimiento** `init-db`
+- \[x\] **Paso 10 — CLI de mantenimiento** `init-db`
   - `python -m reservas init-db` idempotente; `--reset` con confirmación y `--yes`.
   - Pruebas (`test_cli.py`): idempotente; reset borra reservas; sin `--reset` no las toca.
-- \[ \] **Paso 11 — Frontera de capas**
+- \[x\] **Paso 11 — Frontera de capas**
   - `test_frontera_reflex.py`: ningún módulo de `src/reservas/` importa `reflex`.
 
 ## Fase 2 — Interfaz Reflex
 
-- \[ \] **Paso 12 — Scaffold de Reflex** *(requiere aprobación humana de acceso a red)*
+- \[x\] **Paso 12 — Scaffold de Reflex** *(requiere aprobación humana de acceso a red)*
   - `reflex init`, [`rxconfig.py`](http://rxconfig.py) con `app_name = "reservas_ui"`, módulo `reservas_ui/` con una página `/` mínima.
   - Verificar que `reflex run` arranca (manual, con BD temporal) y registrar versión de Reflex realmente instalada.
   - Confirmar que los artefactos de Reflex están ignorados en Git.

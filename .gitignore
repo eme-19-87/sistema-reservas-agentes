@@ -1,3 +1,6 @@
+.states
+.web
+*.db
 # Python
 .venv/
 __pycache__/
