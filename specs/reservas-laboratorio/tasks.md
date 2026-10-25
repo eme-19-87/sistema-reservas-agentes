@@ -23,7 +23,7 @@
   - `data/inventario.json` con `MIC-01`, `MIC-02`, `OSC-01`, `MUL-01`, `FUE-01`.
   - [`inventario.py`](http://inventario.py) de solo lectura.
   - Prueba (`test_inventario.py`): se leen las 5 unidades con sus equipos.
-- \[ \] **Paso 5 — Dominio: validaciones**
+- \[x\] **Paso 5 — Dominio: validaciones**
   - Entidades, excepciones de dominio y parseo de fechas `YYYY-MM-DDTHH:MM`.
   - Pruebas primero (`test_validaciones.py`): unidad desconocida, solicitante vacío o solo espacios, fecha inválida, fecha con offset, `inicio >= fin`, fecha pasada, duración máxima, anticipación máxima; límites exactos válidos (8 h, 90 días, inicio = ahora).
 - \[ \] **Paso 6 — Dominio: solapamiento**

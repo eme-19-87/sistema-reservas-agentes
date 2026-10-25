@@ -144,9 +144,48 @@ ningún comando de red.
   del modelo queda atribuida a la persona autora.
 - No se inventaron episodios de delegación: los tres obligatorios quedan pendientes hasta
   que ocurran (Paso 24).
-- Persisten tres aprobaciones pendientes: instalar Python (bloquea la ejecución de
-  `pytest` y `ruff` a partir del Paso 3), aprobar la red de `reflex init` (Paso 12) y
-  confirmar la implementación de la nueva validación del solicitante (Paso 5).
+- Persisten dos aprobaciones pendientes: instalar Python (bloquea la ejecución de
+  `pytest` y `ruff` a partir del Paso 3) y aprobar la red de `reflex init` (Paso 12).
+- Nota: la precisión de la validación del solicitante quedó en `spec.md` (commit `1d35404`);
+  se implementa en este paso tal como se solicita.
+
+## Paso 5 — Dominio: validaciones
+
+**Estado:** completado.
+
+**Objetivo:** crear entidades/excepciones de dominio, parseo de fechas `YYYY-MM-DDTHH:MM`,
+validaciones en el orden correcto e implementar la nueva regla del solicitante.
+
+**Trabajo realizado:**
+
+- Se creó `src/reservas/dominio.py` con las excepciones (`UnidadDesconocida`,
+  `SolicitanteInvalido`, `FechaInvalida`, `IntervaloInvalido`, `LimiteExcedido`,
+  `Superposicion`, `ReservaNoEncontrada`, `ReservaYaCancelada`), parseo estricto sin
+  offset, validación del solicitante (vacío/espacios, solo números, caracteres especiales
+  rechazados; se permiten acentos y diéresis), límites de tiempo inyectables y función
+  `validar_solicitud_intervalo`.
+- Se creó `tests/test_validaciones.py` con pruebas para todos los casos del Paso 5,
+  incluyendo los límites exactos (8 h, 90 días, inicio == ahora) y el solicitante con
+  acentos/dieresis.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ Test-Path src/reservas/dominio.py, tests/test_validaciones.py
+True True
+```
+
+**Resultado:** archivos creados. **No se ejecutaron `pytest -q` ni `ruff check .`** por falta
+de Python en el entorno.
+
+**Pasos no ejecutados:** `pytest -q` (`tests/test_validaciones.py`) y `ruff check .`.
+
+**Decisiones:**
+
+- El reloj se inyecta mediante `ahora` o `reloj` para mantener las pruebas
+  deterministas, tal como exige `plan.md` §7.
+- `validar_solicitud_intervalo` omite la validación del solicitante cuando es `None`
+  (consulta de disponibilidad), tal como indica `spec.md` §7.2.
 
 ## Paso 4 — Inventario
 
