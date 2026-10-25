@@ -52,7 +52,7 @@
   - `reflex init`, [`rxconfig.py`](http://rxconfig.py) con `app_name = "reservas_ui"`, módulo `reservas_ui/` con una página `/` mínima.
   - Verificar que `reflex run` arranca (manual, con BD temporal) y registrar versión de Reflex realmente instalada.
   - Confirmar que los artefactos de Reflex están ignorados en Git.
-- \[ \] **Paso 13 — Capa de presentación (funciones puras)**
+- \[x\] **Paso 13 — Capa de presentación (funciones puras)**
   - `reservas_ui/presentacion.py`: funciones que reciben el servicio y devuelven mensajes y filas listos para mostrar (consultar, reservar, cancelar, listar con filtros); mapeo de cada excepción de dominio a mensaje en español.
   - Pruebas primero (`test_ui_presentacion.py`): un mensaje por excepción (el de superposición nombra la reserva en conflicto); éxito con ID; filas ACTIVA/CANCELADA; «disponible» / «no disponible» con conflictos.
 - \[ \] **Paso 14 —** `State`**: carga inicial**
