@@ -55,20 +55,34 @@ DURACION_MAXIMA_HORAS = 8
 ANTICIPACION_MAXIMA_DIAS = 90
 
 
-def parsear_fecha_hora(cadena: str) -> datetime:
-    """Parsea fecha/hora en formato YYYY-MM-DDTHH:MM sin zona horaria."""
+def _validar_tipo_cadena(cadena: str) -> None:
     if not isinstance(cadena, str):
         raise FechaInvalida("Fecha inválida.")
-    # Rechazar offsets
-    if cadena.endswith("Z") or "+" in cadena or cadena.count("-") > 2:
-        # Permitir guiones de fecha pero no offsets con +
-        if "+" in cadena or cadena.endswith("Z"):
-            raise FechaInvalida("Fecha inválida.")
+
+
+def _tiene_offset(cadena: str) -> bool:
+    if cadena.endswith("Z"):
+        return True
+    if "+" in cadena:
+        return True
+    return False
+
+
+def _validar_sin_offset(cadena: str) -> None:
+    if _tiene_offset(cadena):
+        raise FechaInvalida("Fecha inválida.")
+    if cadena.count("-") > 2:
+        raise FechaInvalida("Fecha inválida.")
+
+
+def parsear_fecha_hora(cadena: str) -> datetime:
+    """Parsea fecha/hora en formato YYYY-MM-DDTHH:MM sin zona horaria."""
+    _validar_tipo_cadena(cadena)
+    _validar_sin_offset(cadena)
     try:
         fecha = datetime.strptime(cadena, FORMATO_FECHA)
     except ValueError as exc:
         raise FechaInvalida("Fecha inválida.") from exc
-    # Verificar formato exacto
     if fecha.strftime(FORMATO_FECHA) != cadena:
         raise FechaInvalida("Fecha inválida.")
     return fecha
