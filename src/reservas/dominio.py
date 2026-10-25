@@ -88,23 +88,27 @@ def parsear_fecha_hora(cadena: str) -> datetime:
     return fecha
 
 
-def validar_solicitante(solicitante: str) -> str:
-    """Valida y normaliza el solicitante."""
+def _validar_solicitante_no_vacio(solicitante: str) -> str:
     if not isinstance(solicitante, str):
         raise SolicitanteInvalido("Solicitante inválido.")
     if solicitante.strip() == "":
         raise SolicitanteInvalido("Solicitante inválido.")
-    normalizado = solicitante.strip()
-    # No solo espacios ya verificado
-    # No compuesto solo por números
+    return solicitante.strip()
+
+
+def _validar_solicitante_sin_numeros_y_especiales(normalizado: str) -> None:
     if normalizado.isdigit():
         raise SolicitanteInvalido("Solicitante inválido.")
-    # Sin caracteres especiales - permitir letras (incluyendo acentos y diéresis), espacios, guiones
-    # Patrón: solo letras unicode, espacios, guiones
     if re.search(r"[^A-Za-zÁÉÍÓÚÜáéíóúüÑñ\s\-']", normalizado):
         raise SolicitanteInvalido("Solicitante inválido.")
     if re.match(r"^[\s\-\d]+$", normalizado):
         raise SolicitanteInvalido("Solicitante inválido.")
+
+
+def validar_solicitante(solicitante: str) -> str:
+    """Valida y normaliza el solicitante."""
+    normalizado = _validar_solicitante_no_vacio(solicitante)
+    _validar_solicitante_sin_numeros_y_especiales(normalizado)
     return normalizado
 
 
