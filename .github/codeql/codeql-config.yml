@@ -1,0 +1,8 @@
+name: "Config CodeQL para Reflex"
+
+paths-ignore:
+  - .web
+  - .venv
+  - venv
+  - node_modules
+  - tests

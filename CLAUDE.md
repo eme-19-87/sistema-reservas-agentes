@@ -1,7 +1,7 @@
 <!-- reflex managed begin (do not edit inside this block; add custom content outside the markers) -->
 # Agents
 
-This project uses the **Reflex agent skills** � up-to-date knowledge for building full-stack Python web apps with [Reflex](https://reflex.dev). Install them first, then use them as described below.
+This project uses the **Reflex agent skills** � up-to-date knowledge for building full-stack Python web apps with [Reflex](https://reflex.dev). Install them first, then use them as described below.
 
 ## Installing the Skills
 
@@ -28,19 +28,19 @@ Or clone https://github.com/reflex-dev/agent-skills and copy the `skills/` folde
 
 ### Verifying
 
-Before writing or editing any Reflex code, confirm these three skills are available: `reflex-docs`, `setup-python-env`, and `reflex-process-management`. If they are not, STOP and run the install step above � do not proceed without them.
+Before writing or editing any Reflex code, confirm these three skills are available: `reflex-docs`, `setup-python-env`, and `reflex-process-management`. If they are not, STOP and run the install step above � do not proceed without them.
 
 ## Using the Skills
 
 ### Reflex documentation
 
-For anything about Reflex APIs � components, state management, events, styling, database, routing, authentication � use the **reflex-docs** skill rather than relying on memory. It carries current, version-accurate docs.
+For anything about Reflex APIs � components, state management, events, styling, database, routing, authentication � use the **reflex-docs** skill rather than relying on memory. It carries current, version-accurate docs.
 
 ### Initializing a new Reflex project
 
 When starting a new Reflex project or setting up a development environment, you **must** follow the **setup-python-env** skill before doing anything else.
 
-Do not skip any steps. Do not assume a virtual environment or Reflex is already available � always verify first by following the skill's instructions in order.
+Do not skip any steps. Do not assume a virtual environment or Reflex is already available � always verify first by following the skill's instructions in order.
 
 After the environment is ready and Reflex is installed, run:
 
@@ -166,3 +166,52 @@ Una tarea está terminada cuando:
 - no quedan errores bloqueantes conocidos;
 - la casilla de [`tasks.md`](http://tasks.md) está marcada y `docs/agent/[progreso.md](http://progreso.md)` actualizado con evidencia real;
 - el cambio está en un commit con mensaje descriptivo.
+<!-- cloude-code-toolbox:mcp-skills-awareness-begin -->
+
+### MCP & Skills awareness (Claude Code ToolBox)
+
+_Last synced: 2026-10-25T19:29:58.843Z._
+
+- **Full report:** `.claude/cloude-code-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
+- **MCP:** For **live tools** in Claude Code, enable the matching server via `/mcp`. Servers are configured in `~/.claude.json` (user) and `.mcp.json` (project).
+- **When the user’s task matches a server** (e.g. Confluence work and a **Confluence** / **Atlassian** MCP is listed), **prefer that server id** and plan on tool use—not only file search.
+- **Skills:** Folders below contain `SKILL.md`; attach or cite paths in chat when relevant.
+
+#### Workspace MCP
+
+- `c:\Users\espin\OneDrive\Documentos\LISI\Topicos Avanzados De Ingenieria De Software\SDD\Desarrollo-de-un-sistema-de-reservas-con-agentes\.mcp.json` _(workspace: Desarrollo-de-un-sistema-de-reservas-con-agentes)_ — _file missing_
+
+_No active workspace servers in mcp.json._
+
+#### User MCP
+
+- `C:\Users\espin\.claude.json` — _servers defined_
+
+| Server id | Kind | Detail |
+|-----------|------|--------|
+| context7 | stdio | npx -y --package=@upstash/context7-mcp@2.2.5 -- context7-mcp |
+| engram | stdio | engram mcp --tools=agent |
+
+#### Project skills
+
+- **reflex-rules** — `c:\Users\espin\OneDrive\Documentos\LISI\Topicos Avanzados De Ingenieria De Software\SDD\Desarrollo-de-un-sistema-de-reservas-con-agentes\.claude\skills\reflex-rules` — **Description:** Genera o modifica la interfaz web de un proyecto Reflex (Python) respetando la arquitectura por capas, las restricciones de Reflex 0.10 y las reglas del proyecto de reservas de laboratorio.
+
+#### User skills
+
+- **chained-pr** — `C:\Users\espin\.claude\skills\chained-pr` — Trigger: PRs over 400 lines, stacked PRs, review slices. Split oversized changes into chained PRs that protect review focus.
+
+- **cognitive-doc-design** — `C:\Users\espin\.claude\skills\cognitive-doc-design` — Design docs that reduce cognitive load. Trigger: writing guides, READMEs, RFCs, onboarding, architecture, or review-facing docs.
+
+- **go-testing** — `C:\Users\espin\.claude\skills\go-testing` — Trigger: Go tests, go test coverage, Bubbletea teatest, golden files. Apply focused Go testing patterns.
+
+- **judgment-day** — `C:\Users\espin\.claude\skills\judgment-day` — Trigger: judgment day, dual review, adversarial review, juzgar. Run explicit blind dual review with at most two scoped fix/re-judgment rounds.
+
+- **skill-creator** — `C:\Users\espin\.claude\skills\skill-creator` — Trigger: new skills, agent instructions, documenting AI usage patterns. Create LLM-first skills with valid frontmatter.
+
+- **skill-improver** — `C:\Users\espin\.claude\skills\skill-improver` — Trigger: improve skills, audit skills, refactor skills, skill quality. Audit and upgrade existing LLM-first skills.
+
+- **skill-registry** — `C:\Users\espin\.claude\skills\skill-registry` — Trigger: update skills, skill registry, actualizar skills, after skill changes. Index available skills by trigger and path.
+
+- **work-unit-commits** — `C:\Users\espin\.claude\skills\work-unit-commits` — Plan commits as reviewable work units. Trigger: implementation, commit splitting, chained PRs, or keeping tests and docs with code.
+
+<!-- cloude-code-toolbox:mcp-skills-awareness-end -->

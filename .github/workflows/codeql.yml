@@ -1,0 +1,47 @@
+name: "CodeQL"
+
+on:
+  # Cuando se abre o actualiza un pull request hacia main
+  pull_request:
+    branches: [ "main" ]
+  # Cuando el código llega a main (merge o push directo)
+  push:
+    branches: [ "main" ]
+  # Escaneo semanal (lunes 03:00 UTC), útil porque aparecen reglas nuevas
+  schedule:
+    - cron: "0 3 * * 1"
+  # Permite lanzarlo a mano desde la pestaña Actions
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      security-events: write   # necesario para subir los resultados
+      contents: read
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ "python" ]
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          queries: security-and-quality   # opcional: más reglas que el set por defecto
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Ejecutar análisis CodeQL
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{ matrix.language }}"

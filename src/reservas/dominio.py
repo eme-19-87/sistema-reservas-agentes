@@ -89,7 +89,19 @@ def _validar_sin_offset(cadena: str) -> None:
 
 
 def parsear_fecha_hora(cadena: str) -> datetime:
-    """Parsea fecha/hora en formato YYYY-MM-DDTHH:MM sin zona horaria."""
+    """Parsea fecha/hora en formato YYYY-MM-DDTHH:MM sin zona horaria.
+    Parámetros:
+    
+    cadena: Tipo String. Es la cadena de caracteres que representa la fecha con zona horaria
+    
+    Retorno:
+    
+    Retorna un objeto datetime con el formato YYYY-MM-DDHH:MM
+    
+    Excepciones:
+    
+    En caso de error, eleva una excepción FechaInvalida
+    """
     _validar_tipo_cadena(cadena)
     _validar_sin_offset(cadena)
     try:
@@ -102,6 +114,17 @@ def parsear_fecha_hora(cadena: str) -> datetime:
 
 
 def _validar_solicitante_no_vacio(solicitante: str) -> str:
+    """Controla que el nombre del solicitante del componente no sea vacío
+
+    Args:
+        solicitante (str): Es el nombre del solicitante
+
+    Raises:
+        SolicitanteInvalido: Excepción que se eleva si el solicitante es inválido
+
+    Returns:
+        str: Retorna el nombre del solicitante sin espacios en blanco, en caso que no esté vacío
+    """
     if not isinstance(solicitante, str):
         raise SolicitanteInvalido("Solicitante inválido.")
     if solicitante.strip() == "":
@@ -110,6 +133,14 @@ def _validar_solicitante_no_vacio(solicitante: str) -> str:
 
 
 def _validar_solicitante_sin_numeros_y_especiales(normalizado: str) -> None:
+    """Controla si el nombre del solicitante contiene números o caracteres especiales
+
+    Args:
+        normalizado (str): Es el nombre del solicitante no vacío y sin espacios en blanco
+
+    Raises:
+        SolicitanteInvalido:Indica que es un solicitante inválido por tener dígitos o caracteres epeciales
+    """
     if normalizado.isdigit():
         raise SolicitanteInvalido("Solicitante inválido.")
     if re.search(r"[^A-Za-zÁÉÍÓÚÜáéíóúüÑñ\s\-']", normalizado):
