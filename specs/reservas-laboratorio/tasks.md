@@ -15,7 +15,7 @@
 
 ## Fase 1 — Núcleo (sin Reflex)
 
-- \[ \] **Paso 3 — Proyecto Python y herramientas**
+- \[x\] **Paso 3 — Proyecto Python y herramientas**
   - `pyproject.toml` (`requires-python >=3.11`), `requirements-dev.txt` con `reflex==0.10.0`, `pytest` y `ruff` fijados.
   - Estructura `src/reservas/` y `tests/` con [`conftest.py`](http://conftest.py) (BD temporal y reloj fijo).
   - Validar `pytest -q` (sin pruebas aún) y `ruff check .`; registrar versiones de Python, Reflex, pytest y ruff.

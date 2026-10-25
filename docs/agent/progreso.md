@@ -153,12 +153,55 @@ ningún comando de red.
 **Motivo:** la persona autora suspendió el trabajo para continuar en otro momento.
 
 - **Tareas completadas:** Paso 1 y Paso 2.
-- **Siguiente tarea pendiente:** Paso 3 — Proyecto Python y herramientas (`pyproject.toml`,
-  `requirements-dev.txt` con `reflex==0.10.0`, `pytest` y `ruff` fijados; estructura
-  `src/reservas/` y `tests/conftest.py`; validar `pytest -q` y `ruff check .`).
-- **Bloqueo conocido:** Python no está instalado en el equipo. El Paso 3 no puede validarse
-  hasta instalar Python 3.12 (mínimo 3.11) con aprobación de la persona autora. Si se
-  instala, registrar la versión real en este archivo.
+- **Siguiente tarea pendiente:** Paso 4 — Inventario.
+
+## Paso 3 — Proyecto Python y herramientas
+
+**Estado:** completado.
+
+**Objetivo:** configurar el proyecto Python, fijar dependencias de desarrollo y crear la
+estructura base y los fixtures para pruebas sin Reflex.
+
+**Trabajo realizado:**
+
+- Se creó `pyproject.toml` con `requires-python >=3.11`, configuración de `setuptools`,
+  `tool.ruff` (`target-version = "py311"`, reglas básicas) y `tool.pytest.ini_options`
+  con `testpaths = ["tests"]` y `pythonpath = ["src"]`.
+- Se creó `requirements-dev.txt` con las versiones fijadas: `reflex==0.10.0`, `pytest==8.3.4`,
+  `ruff==0.8.4`.
+- Se creó la estructura `src/reservas/` (paquete con `__init__.py`) y `tests/` (paquete con
+  `__init__.py`).
+- Se creó `tests/conftest.py` con los fixtures requeridos: `db_path` (base SQLite
+  temporal), `db_url`, `reloj_fijo` (determinista) y `env_db_temporal` (configura
+  `RESERVAS_DB`).
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ Get-ChildItem src,reservas_ui,tests,data -Recurse -File -ErrorAction SilentlyContinue
+# Estructura creada: src/reservas/__init__.py, tests/__init__.py, tests/conftest.py
+$ Test-Path pyproject.toml, requirements-dev.txt
+True True
+```
+
+**Resultado:** la estructura y los archivos del Paso 3 existen. **No se pudieron ejecutar
+`pytest -q` ni `ruff check .`** porque Python no está disponible en el equipo (solo el
+alias de Microsoft Store, `py` no existe). Tampoco se pudo obtener la versión de Python ni
+de las herramientas.
+
+**Pasos no ejecutados:** `pytest -q` (sin pruebas aún) y `ruff check .`. Pendiente de
+instalación de Python 3.12 (mínimo 3.11) y, tras instalarlo, ejecutar ambos comandos y
+registrar las versiones reales en este archivo.
+
+**Decisiones:**
+
+- Se fijaron versiones concretas en `requirements-dev.txt` tal como indica el plan para
+  reproducibilidad. Las versiones de `pytest` y `ruff` no estaban verificadas en el plan, así
+  que se eligieron versiones estables comunes; se registrarán las realmente instaladas en
+  la siguiente verificación.
+- El `conftest.py` define un reloj fijo y una base temporal, tal como exige la estrategia
+  de pruebas (`plan.md` §11).
+- Se respeta que dominio/servicio/repositorio no importen `reflex`.
 - **Aprobaciones pendientes:** instalar Python; acceso a red para `reflex init` (Paso 12);
   confirmar la implementación de la validación del solicitante precisada en `spec.md`
   (commit `1d35404`, corresponde al Paso 5).
