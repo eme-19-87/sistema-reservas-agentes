@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable, Iterable
 
+
 from .inventario import obtener_inventario
 
 
@@ -53,6 +54,18 @@ class ReservaYaCancelada(ErrorDominio):
 FORMATO_FECHA = "%Y-%m-%dT%H:%M"
 DURACION_MAXIMA_HORAS = 8
 ANTICIPACION_MAXIMA_DIAS = 90
+
+
+@dataclass
+class ContextoValidacion:
+    unidad_id: str
+    inicio: str | datetime
+    fin: str | datetime
+    solicitante: str | None = None
+    ahora: datetime | None = None
+    reloj: Callable[[], datetime] | None = None
+    inventario: dict[str, dict] | None = None
+    reservas_activas: Iterable[dict] | None = None
 
 
 def _validar_tipo_cadena(cadena: str) -> None:
@@ -124,6 +137,80 @@ def truncar_al_minuto(fecha: datetime) -> datetime:
     return fecha.replace(second=0, microsecond=0)
 
 
+def _obtener_inventario(contexto: ContextoValidacion) -> dict[str, dict]:
+    if contexto.inventario is None:
+        return obtener_inventario()
+    return contexto.inventario
+
+
+def _obtener_ahora(contexto: ContextoValidacion) -> datetime:
+    if contexto.reloj is not None and contexto.ahora is None:
+        ahora = contexto.reloj()
+    elif contexto.ahora is not None:
+        ahora = contexto.ahora
+    else:
+        ahora = datetime.now()
+    return truncar_al_minuto(ahora)
+
+
+def _parsear_intervalo(contexto: ContextoValidacion) -> tuple[datetime, datetime]:
+    if isinstance(contexto.inicio, str):
+        inicio_dt = parsear_fecha_hora(contexto.inicio)
+    else:
+        inicio_dt = truncar_al_minuto(contexto.inicio)
+    if isinstance(contexto.fin, str):
+        fin_dt = parsear_fecha_hora(contexto.fin)
+    else:
+        fin_dt = truncar_al_minuto(contexto.fin)
+    return inicio_dt, fin_dt
+
+
+def _validar_solicitante_si_presente(contexto: ContextoValidacion) -> None:
+    if contexto.solicitante is not None:
+        validar_solicitante(contexto.solicitante)
+
+
+def _validar_orden_intervalo(inicio_dt: datetime, fin_dt: datetime) -> None:
+    if inicio_dt >= fin_dt:
+        raise IntervaloInvalido("Intervalo inválido.")
+
+
+def _validar_limites_tiempo(inicio_dt: datetime, fin_dt: datetime, ahora_trunc: datetime) -> None:
+    if inicio_dt < ahora_trunc:
+        raise LimiteExcedido("Límite excedido.")
+    duracion = fin_dt - inicio_dt
+    if duracion > timedelta(hours=DURACION_MAXIMA_HORAS):
+        raise LimiteExcedido("Límite excedido.")
+    if inicio_dt > ahora_trunc + timedelta(days=ANTICIPACION_MAXIMA_DIAS):
+        raise LimiteExcedido("Límite excedido.")
+
+
+def _validar_sin_solapamiento(
+    unidad_id: str,
+    inicio_dt: datetime,
+    fin_dt: datetime,
+    reservas_activas: Iterable[dict] | None,
+) -> None:
+    if not reservas_activas:
+        return
+    for reserva in reservas_activas:
+        if reserva.get("unidad_id") != unidad_id and reserva.get("unidad") != unidad_id:
+            continue
+        if reserva.get("estado") and reserva.get("estado") != "ACTIVA":
+            continue
+        r_inicio = reserva.get("inicio")
+        r_fin = reserva.get("fin")
+        if isinstance(r_inicio, str):
+            r_inicio = parsear_fecha_hora(r_inicio)
+        if isinstance(r_fin, str):
+            r_fin = parsear_fecha_hora(r_fin)
+        if hay_solapamiento(inicio_dt, fin_dt, r_inicio, r_fin):
+            raise Superposicion(
+                f"Superposición con la reserva activa {reserva.get('id')}.",
+                [reserva],
+            )
+
+
 def validar_solicitud_intervalo(
     unidad_id: str,
     inicio: str | datetime,
@@ -135,59 +222,24 @@ def validar_solicitud_intervalo(
     reservas_activas: Iterable[dict] | None = None,
 ) -> tuple[datetime, datetime]:
     """Valida una solicitud. Si solicitante es None, se omite (consulta)."""
-    if inventario is None:
-        inventario = obtener_inventario()
-    validar_unidad_conocida(unidad_id, inventario)
-
-    if solicitante is not None:
-        validar_solicitante(solicitante)
-
-    if isinstance(inicio, str):
-        inicio_dt = parsear_fecha_hora(inicio)
-    else:
-        inicio_dt = truncar_al_minuto(inicio)
-    if isinstance(fin, str):
-        fin_dt = parsear_fecha_hora(fin)
-    else:
-        fin_dt = truncar_al_minuto(fin)
-
-    if inicio_dt >= fin_dt:
-        raise IntervaloInvalido("Intervalo inválido.")
-
-    if reloj is not None and ahora is None:
-        ahora = reloj()
-    if ahora is None:
-        ahora = datetime.now()
-    ahora_trunc = truncar_al_minuto(ahora)
-
-    if inicio_dt < ahora_trunc:
-        raise LimiteExcedido("Límite excedido.")
-
-    duracion = fin_dt - inicio_dt
-    if duracion > timedelta(hours=DURACION_MAXIMA_HORAS):
-        raise LimiteExcedido("Límite excedido.")
-    if inicio_dt > ahora_trunc + timedelta(days=ANTICIPACION_MAXIMA_DIAS):
-        raise LimiteExcedido("Límite excedido.")
-
-    # Sin solapamiento con reservas activas de la misma unidad
-    if reservas_activas:
-        for reserva in reservas_activas:
-            if reserva.get("unidad_id") != unidad_id and reserva.get("unidad") != unidad_id:
-                continue
-            if reserva.get("estado") and reserva.get("estado") != "ACTIVA":
-                continue
-            r_inicio = reserva.get("inicio")
-            r_fin = reserva.get("fin")
-            if isinstance(r_inicio, str):
-                r_inicio = parsear_fecha_hora(r_inicio)
-            if isinstance(r_fin, str):
-                r_fin = parsear_fecha_hora(r_fin)
-            if hay_solapamiento(inicio_dt, fin_dt, r_inicio, r_fin):
-                raise Superposicion(
-                    f"Superposición con la reserva activa {reserva.get('id')}.",
-                    [reserva],
-                )
-
+    contexto = ContextoValidacion(
+        unidad_id=unidad_id,
+        inicio=inicio,
+        fin=fin,
+        solicitante=solicitante,
+        ahora=ahora,
+        reloj=reloj,
+        inventario=inventario,
+        reservas_activas=reservas_activas,
+    )
+    inventario_efectivo = _obtener_inventario(contexto)
+    validar_unidad_conocida(contexto.unidad_id, inventario_efectivo)
+    _validar_solicitante_si_presente(contexto)
+    inicio_dt, fin_dt = _parsear_intervalo(contexto)
+    _validar_orden_intervalo(inicio_dt, fin_dt)
+    ahora_trunc = _obtener_ahora(contexto)
+    _validar_limites_tiempo(inicio_dt, fin_dt, ahora_trunc)
+    _validar_sin_solapamiento(contexto.unidad_id, inicio_dt, fin_dt, contexto.reservas_activas)
     return inicio_dt, fin_dt
 
 
