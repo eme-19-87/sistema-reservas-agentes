@@ -212,9 +212,9 @@ def _validar_sin_solapamiento(
 
 
 def validar_solicitud_intervalo(
-    unidad_id: str,
-    inicio: str | datetime,
-    fin: str | datetime,
+    unidad_id: str | ContextoValidacion,
+    inicio: str | datetime | None = None,
+    fin: str | datetime | None = None,
     solicitante: str | None = None,
     ahora: datetime | None = None,
     reloj: Callable[[], datetime] | None = None,
@@ -222,16 +222,19 @@ def validar_solicitud_intervalo(
     reservas_activas: Iterable[dict] | None = None,
 ) -> tuple[datetime, datetime]:
     """Valida una solicitud. Si solicitante es None, se omite (consulta)."""
-    contexto = ContextoValidacion(
-        unidad_id=unidad_id,
-        inicio=inicio,
-        fin=fin,
-        solicitante=solicitante,
-        ahora=ahora,
-        reloj=reloj,
-        inventario=inventario,
-        reservas_activas=reservas_activas,
-    )
+    if isinstance(unidad_id, ContextoValidacion):
+        contexto = unidad_id
+    else:
+        contexto = ContextoValidacion(
+            unidad_id=unidad_id,
+            inicio=inicio,
+            fin=fin,
+            solicitante=solicitante,
+            ahora=ahora,
+            reloj=reloj,
+            inventario=inventario,
+            reservas_activas=reservas_activas,
+        )
     inventario_efectivo = _obtener_inventario(contexto)
     validar_unidad_conocida(contexto.unidad_id, inventario_efectivo)
     _validar_solicitante_si_presente(contexto)
