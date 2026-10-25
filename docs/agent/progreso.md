@@ -322,3 +322,17 @@ True True
 
 - Se reutiliza hay_solapamiento desde validar_solicitud_intervalo, cumpliendo que disponibilidad y reserva comparten la misma regla.
 - Las reservas con estado CANCELADA no se consideran para el calculo de solapamiento.
+## Limpieza de code smells (dominio)
+
+**Fecha:** 2026-10-25
+
+**Archivos modificados:** src/reservas/dominio.py
+
+**Funciones modificadas y acciones realizadas:**
+
+- parsear_fecha_hora: se extraen las validaciones en _validar_tipo_cadena y _validar_sin_offset para eliminar Complex Method. Se mantiene el formato YYYY-MM-DDTHH:MM sin zona horaria.
+- validar_solicitante: se extraen _validar_solicitante_no_vacio y _validar_solicitante_sin_numeros_y_especiales para eliminar Complex Method. Se preservan las reglas (sin solo espacios, sin solo numeros, sin caracteres especiales; se permiten acentos/diÃ©resis).
+- validar_solicitud_intervalo: se introduce ContextoValidacion y funciones auxiliares (_obtener_inventario, _obtener_ahora, _parsear_intervalo, _validar_solicitante_si_presente, _validar_orden_intervalo, _validar_limites_tiempo, _validar_sin_solapamiento) para eliminar Complex Method y Excess Number of Function Arguments. La firma se mantiene compatible (tambiÃ©n acepta ContextoValidacion).
+- _validar_sin_solapamiento: se extraen _es_reserva_activa_de_unidad y _obtener_intervalo_reserva para eliminar Complex Method.
+
+**Resultado:** Sin cambios de comportamiento. Sin pruebas ejecutadas (sin Python en el entorno).
