@@ -185,6 +185,24 @@ def _validar_limites_tiempo(inicio_dt: datetime, fin_dt: datetime, ahora_trunc: 
         raise LimiteExcedido("Límite excedido.")
 
 
+def _es_reserva_activa_de_unidad(reserva: dict, unidad_id: str) -> bool:
+    if reserva.get("unidad_id") != unidad_id and reserva.get("unidad") != unidad_id:
+        return False
+    if reserva.get("estado") and reserva.get("estado") != "ACTIVA":
+        return False
+    return True
+
+
+def _obtener_intervalo_reserva(reserva: dict) -> tuple[datetime, datetime]:
+    r_inicio = reserva.get("inicio")
+    r_fin = reserva.get("fin")
+    if isinstance(r_inicio, str):
+        r_inicio = parsear_fecha_hora(r_inicio)
+    if isinstance(r_fin, str):
+        r_fin = parsear_fecha_hora(r_fin)
+    return r_inicio, r_fin
+
+
 def _validar_sin_solapamiento(
     unidad_id: str,
     inicio_dt: datetime,
@@ -194,16 +212,9 @@ def _validar_sin_solapamiento(
     if not reservas_activas:
         return
     for reserva in reservas_activas:
-        if reserva.get("unidad_id") != unidad_id and reserva.get("unidad") != unidad_id:
+        if not _es_reserva_activa_de_unidad(reserva, unidad_id):
             continue
-        if reserva.get("estado") and reserva.get("estado") != "ACTIVA":
-            continue
-        r_inicio = reserva.get("inicio")
-        r_fin = reserva.get("fin")
-        if isinstance(r_inicio, str):
-            r_inicio = parsear_fecha_hora(r_inicio)
-        if isinstance(r_fin, str):
-            r_fin = parsear_fecha_hora(r_fin)
+        r_inicio, r_fin = _obtener_intervalo_reserva(reserva)
         if hay_solapamiento(inicio_dt, fin_dt, r_inicio, r_fin):
             raise Superposicion(
                 f"Superposición con la reserva activa {reserva.get('id')}.",
