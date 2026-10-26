@@ -75,7 +75,7 @@
 - \[x\] **Paso 19 — Prueba de humo de la app**
   - `test_ui_humo.py`: `reservas_ui` se importa, la página `/` está registrada, el `State` declara todas sus vars.
   - Ejecutar la suite completa (`pytest -q`) y `ruff check .`.
-- \[ \] **Paso 20 — Comprobación manual en navegador**
+- \[x\] **Paso 20 — Comprobación manual en navegador**
   - Con una BD temporal, ejecutar el procedimiento: reservar 10:00–11:00 en MIC-01 → rechazar 10:30–11:30 → aceptar 11:00–12:00 → reservar MIC-02 10:00–11:00 → cancelar y verificar liberación.
   - Registrar resultados **esperados y observados**, y los pasos no ejecutados.
 

@@ -819,3 +819,74 @@ el mismo conjunto preexistente documentado antes del Paso 19.
 
 **Pasos no ejecutados:** la comprobación manual en navegador corresponde al Paso 20 y
 no se inició.
+
+## Paso 20 - Comprobación manual en navegador
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se levantó una instancia aislada de Reflex en los puertos
+3010/8010 con `RESERVAS_DB` apuntando a
+`C:\Users\espin\AppData\Local\Temp\opencode\reservas-paso20.db`; la base se creó vacía.
+Se cargó la app en Edge 156 headless y se ejecutó el procedimiento con clics y escritura
+reales sobre el DOM mediante CDP. No se reinició el servidor. Los nombres de solicitante
+se eligieron sin dígitos porque la validación del dominio rechaza números; un intento
+previo con `Prueba UI 20` fue rechazado correctamente con `Solicitante inválido.` y se
+repitió con `Prueba UI`.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, Edge 156.0.4314.42.
+
+**Resultados esperados y observados:**
+
+| Paso | Esperado | Observado |
+| --- | --- | --- |
+| 1. Reservar MIC-01 10:00-11:00 | Alta correcta | `Reserva creada con ID 1.`; fila `MIC-01`/`Prueba UI`/`ACTIVA` |
+| 2. Rechazar MIC-01 10:30-11:30 | Rechazo por superposición, sin alta | `Superposición con la reserva activa 1.`; la tabla siguió con 1 fila |
+| 3. Aceptar MIC-01 11:00-12:00 | Alta consecutiva correcta | `Reserva creada con ID 2.`; fila `Consecutiva`/`ACTIVA`; 2 filas |
+| 4. Reservar MIC-02 10:00-11:00 | Alta simultánea en otra unidad | `Reserva creada con ID 3.`; fila `MIC-02`/`Otra unidad`/`ACTIVA`; 3 filas |
+| 5. Cancelar la reserva inicial | Fila cancelada y liberación del intervalo | La fila ID 1 pasó a `CANCELADA` y desapareció su botón `Cancelar` |
+| 6. Reservar de nuevo MIC-01 10:00-11:00 | Éxito tras la liberación | `Reserva creada con ID 4.`; fila `Liberada`/`ACTIVA`; 4 filas |
+
+**Estado final de la tabla:**
+
+| ID | Unidad | Solicitante | Inicio | Fin | Estado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MIC-01 | Prueba UI | 2026-10-27T10:00 | 2026-10-27T11:00 | CANCELADA |
+| 2 | MIC-01 | Consecutiva | 2026-10-27T11:00 | 2026-10-27T12:00 | ACTIVA |
+| 3 | MIC-02 | Otra unidad | 2026-10-27T10:00 | 2026-10-27T11:00 | ACTIVA |
+| 4 | MIC-01 | Liberada | 2026-10-27T10:00 | 2026-10-27T11:00 | ACTIVA |
+
+**Verificación adicional:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest
+66 passed in 11.45s
+```
+
+La consulta directa a SQLite confirmó las cuatro filas y sus estados; los logs de la app
+no mostraron errores. La captura final quedó en
+`C:\Users\espin\AppData\Local\Temp\opencode\paso20-final.png`.
+
+**Limpieza:**
+
+- Se detuvieron la app de prueba y Edge; no quedan procesos escuchando en 3010/8010 ni
+  en 9222. Al cierre tampoco había listeners en 3000/8000.
+- Se conservaron la base temporal y la captura como evidencia del Paso 20.
+
+**Decisiones:**
+
+- No se modificó código de la aplicación; sólo se actualizaron la documentación y el
+  estado de la tarea.
+- La liberación se verificó creando de nuevo la misma reserva, en lugar de usar el
+  formulario de disponibilidad.
+
+**Pasos no ejecutados:**
+
+- Persistencia tras reiniciar `reflex run`: corresponde al Paso 21.
+- La comprobación se hizo con un navegador real, pero los clics y la escritura se
+  automatizaron con CDP; no hubo una sesión manual humana.
+- No se probaron dos sesiones concurrentes; queda fuera del alcance del Paso 20.
+
+**Resultado:** los seis pasos del procedimiento se completaron con los resultados
+esperados, sin errores en los logs, y la suite completa sigue en 66/66.
