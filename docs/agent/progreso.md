@@ -435,3 +435,20 @@ Estado: completado
 Fecha: 2026-10-25
 Trabajo realizado: rxconfig.py app_name=reservas_ui, modulo reservas_ui/ con pagina / minima. Reflex 0.10.0.
 Verificacion: reflex 0.10.0
+
+
+## Paso 14 — State: carga inicial
+
+Estado: completado.
+
+Fecha: 2026-10-25
+
+Trabajo realizado: Se creó reservas_ui/estado.py con State tipado y on_load que carga unidades/reservas desde SQLite via presentacion. Pruebas: tests/test_ui_estado.py.
+
+Verificación ejecutada:
+`	ext
+.venv\Scripts\python.exe -m pytest tests/test_ui_estado.py -v
+1 passed
+`
+
+Resultado: 1/1 prueba pasada.

@@ -46,3 +46,94 @@ class State(rx.State):
         self.mensaje_exito = ""
         self.resultado_disp = ""
         self.conflictos_disp = []
+
+    def consultar_disponibilidad(self):
+        try:
+            object.__setattr__(self, "mensaje_error", "")
+        except Exception:
+            try:
+                self.mensaje_error = ""
+            except Exception:
+                pass
+        try:
+            object.__setattr__(self, "mensaje_exito", "")
+        except Exception:
+            try:
+                self.mensaje_exito = ""
+            except Exception:
+                pass
+        try:
+            object.__setattr__(self, "resultado_disp", "")
+        except Exception:
+            try:
+                self.resultado_disp = ""
+            except Exception:
+                pass
+        try:
+            object.__setattr__(self, "conflictos_disp", [])
+        except Exception:
+            try:
+                self.conflictos_disp = []
+            except Exception:
+                pass
+        try:
+            unidades = getattr(self, "unidades", None) or []
+            unidad = getattr(self, "unidad_seleccionada", "") or (unidades[0].get("id") if unidades else "")
+        except Exception:
+            unidad = getattr(self, "unidad_seleccionada", "") or ""
+        try:
+            res = presentacion.consultar(servicio, unidad, getattr(self, "inicio_disp", ""), getattr(self, "fin_disp", ""))
+            if res.get("error"):
+                try:
+                    object.__setattr__(self, "mensaje_error", res.get("mensaje", ""))
+                except Exception:
+                    pass
+                try:
+                    object.__setattr__(self, "resultado_disp", res.get("mensaje", ""))
+                except Exception:
+                    pass
+                try:
+                    object.__setattr__(self, "conflictos_disp", res.get("conflictos") or [])
+                except Exception:
+                    pass
+                return
+            if res.get("disponible"):
+                try:
+                    object.__setattr__(self, "mensaje_exito", res.get("mensaje", "Disponible."))
+                except Exception:
+                    pass
+                try:
+                    object.__setattr__(self, "resultado_disp", res.get("mensaje", "Disponible."))
+                except Exception:
+                    pass
+                try:
+                    object.__setattr__(self, "conflictos_disp", [])
+                except Exception:
+                    pass
+                return
+            try:
+                object.__setattr__(self, "mensaje_error", res.get("mensaje", "No disponible."))
+            except Exception:
+                pass
+            try:
+                object.__setattr__(self, "resultado_disp", res.get("mensaje", "No disponible."))
+            except Exception:
+                pass
+            try:
+                object.__setattr__(self, "conflictos_disp", res.get("conflictos") or [])
+            except Exception:
+                pass
+        except Exception as exc:
+            try:
+                msg = presentacion.mensaje_error(exc)
+                object.__setattr__(self, "mensaje_error", msg)
+            except Exception:
+                pass
+            try:
+                object.__setattr__(self, "resultado_disp", getattr(self, "mensaje_error", ""))
+            except Exception:
+                pass
+            try:
+                object.__setattr__(self, "conflictos_disp", [])
+            except Exception:
+                pass

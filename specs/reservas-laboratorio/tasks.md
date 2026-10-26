@@ -59,7 +59,7 @@
   - `reservas_ui/estado.py`: vars tipadas y declaradas (sin parchear vars de clase), `on_load` que lee unidades y reservas desde SQLite.
   - Confirmar y registrar la técnica de prueba de handlers con Reflex 0.10.
   - Pruebas (`test_ui_estado.py`): `on_load` carga 5 unidades y las reservas existentes en BD temporal.
-- \[ \] **Paso 15 —** `State`**: consultar disponibilidad**
+- \[x\] **Paso 15 —** `State`**: consultar disponibilidad**
   - Handler delgado que delega en presentación.
   - Pruebas: disponible; ocupado; entrada inválida muestra `mensaje_error`; límites consecutivos disponibles; no crea reservas.
 - \[ \] **Paso 16 —** `State`**: reservar**
