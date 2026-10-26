@@ -561,3 +561,91 @@ Success: App compiled successfully in 53.589 seconds.
 ```
 
 Resultado: importación correcta, 63/63 pruebas de la suite completa, ruff sin hallazgos en los archivos modificados y compilación de la app exitosa. La comprobación manual en navegador queda pendiente para el Paso 20.
+
+## Incidencia posterior al Paso 18 - Error de dispatch por frontend obsoleto
+
+**Estado:** resuelto en el entorno; no requirió cambios de código.
+
+**Fecha:** 2026-10-26.
+
+**Síntoma reportado:** al ejecutar `reflex run` aparecía en la terminal:
+
+```text
+[Reflex Frontend Exception] [SID: Xll2qfscH-5FnaurAAAB] State update failed:
+no dispatch function for substate(s)
+'reflex___state____state.reservas_ui___estado____state'.
+This indicates a frontend/backend state mismatch.
+```
+
+La compilación terminaba correctamente y las páginas se mostraban, pero el
+backend registraba el error enviado por el cliente.
+
+**Diagnóstico realizado:**
+
+- Se localizó el origen del mensaje en `.web/utils/state.js:899`: el cliente
+  valida que exista un dispatcher para cada substate del delta y, si falta,
+  emite `dispatch_function_missing` al backend.
+- Se revisó `.web/utils/context.jsx` y se confirmó que el frontend recién
+  compilado sí contenía
+  `reflex___state____state.reservas_ui___estado____state` en `initialState`,
+  `StateContexts` y `SUBSTATES`, incluido su dispatcher.
+- Se revisó `reservas_ui/reservas_ui.py` y se confirmó que el Paso 18 registra
+  `on_load=State.on_load`, por lo que el backend empieza a enviar ese substate
+  al cargar la página.
+- Se comparó con el estado anterior al Paso 18: la página era todavía la
+  mínima y no registraba `reservas_ui.estado.State` ni tenía `on_load`. Por eso
+  una pestaña abierta desde antes de ese paso no posee el dispatcher nuevo.
+- Se levantó la app en los puertos 3005/8005 y se cargó con Edge en modo
+  headless usando perfiles limpios, incluida una carga adicional con el perfil
+  por defecto. No se reprodujo el error con clientes nuevos.
+- Se repitieron varias cargas con perfiles temporales y la app respondió sin el
+  error, cargando las unidades y las reservas.
+- Conclusión: el error provenía de una pestaña o bundle anterior al Paso 18
+  que se reconectó al backend nuevo. El frontend actual no tiene el problema.
+
+**Pasos de solución ejecutados:**
+
+1. Se detuvo el proceso de `reflex run` que se estaba usando para la
+   reproducción.
+2. Se limpiaron los artefactos generados `.web/` y `.states/`. La primera
+   limpieza dejó `node_modules` dentro de `.web`; se eliminó por completo con
+   `rd /s /q .web` y se repitió la inicialización.
+3. Se ejecutó de nuevo el servidor en los puertos por defecto:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m reflex run
+   ```
+
+4. Se cargó `http://localhost:3000/` con un perfil de navegador limpio.
+5. Se comprobó que `on_load` cargó las 5 unidades y las reservas existentes, y
+   que no apareció el error de dispatch.
+6. Se detuvo el servidor de prueba para no dejarlo en segundo plano.
+
+**Verificación ejecutada:**
+
+```text
+.venv\Scripts\python.exe -m reflex run
+App running at: http://localhost:3000/
+Backend running at: http://0.0.0.0:8000
+
+Carga con Edge headless, perfil limpio:
+- DOM generado: 28.940 bytes.
+- Unidades disponibles en el selector: MIC-01, MIC-02, OSC-01, MUL-01, FUE-01.
+- Reservas existentes visibles en la tabla.
+- Sin mensaje de dispatch faltante en la terminal.
+```
+
+**Resultado:** el error no se reproduce con el frontend actual. La solución para
+una sesión que ya lo mostró es cerrar las pestañas antiguas de
+`http://localhost:3000`, abrir una pestaña nueva o forzar recarga con
+`Ctrl+Shift+R`, y reiniciar la terminal para descartar el mensaje anterior.
+
+**Pasos no ejecutados y limitaciones:**
+
+- No se pudo inspeccionar directamente la pestaña original del usuario; el
+  diagnóstico se basa en el frontend generado, el historial del Paso 18 y la
+  reproducción fallida con clientes nuevos.
+- No se modificó código de la aplicación ni se actualizó Reflex.
+- No se volvió a ejecutar `pytest` porque no hubo cambios de código; la
+  comprobación manual de clics sigue pendiente para el Paso 20.
+- El árbol de trabajo quedó limpio y la rama permaneció en `4cfc567`.
