@@ -55,7 +55,7 @@
 - \[x\] **Paso 13 — Capa de presentación (funciones puras)**
   - `reservas_ui/presentacion.py`: funciones que reciben el servicio y devuelven mensajes y filas listos para mostrar (consultar, reservar, cancelar, listar con filtros); mapeo de cada excepción de dominio a mensaje en español.
   - Pruebas primero (`test_ui_presentacion.py`): un mensaje por excepción (el de superposición nombra la reserva en conflicto); éxito con ID; filas ACTIVA/CANCELADA; «disponible» / «no disponible» con conflictos.
-- \[ \] **Paso 14 —** `State`**: carga inicial**
+- \[x\] **Paso 14 —** `State`**: carga inicial**
   - `reservas_ui/estado.py`: vars tipadas y declaradas (sin parchear vars de clase), `on_load` que lee unidades y reservas desde SQLite.
   - Confirmar y registrar la técnica de prueba de handlers con Reflex 0.10.
   - Pruebas (`test_ui_estado.py`): `on_load` carga 5 unidades y las reservas existentes en BD temporal.

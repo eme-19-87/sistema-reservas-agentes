@@ -1,15 +1,13 @@
 name: "CodeQL"
 
 on:
-  # Cuando se abre o actualiza un pull request hacia main
   pull_request:
-    branches: [ "main" ]
-  # Cuando el código llega a main (merge o push directo)
+    branches: [ "main", "development" ]
   push:
-    branches: [ "main" ]
-  # Escaneo semanal (lunes 03:00 UTC), útil porque aparecen reglas nuevas
+    branches: [ "main", "development" ]
   schedule:
     - cron: "0 3 * * 1"
+  workflow_dispatch:
   # Permite lanzarlo a mano desde la pestaña Actions
   workflow_dispatch:
 
