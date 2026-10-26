@@ -9,9 +9,10 @@ El proyecto se desarrolla con **Spec-Driven Development (SDD)** y un agente de
 programación. La especificación es la fuente normativa; el plan técnico y el registro
 de progreso se mantienen en el repositorio.
 
-> **Estado:** aplicación implementada y verificada hasta el Paso 21. Este README
-> completa las secciones 1 y 2 en el Paso 22; las secciones 3 y 4 corresponden a los
-> Pasos 23 y 24, y la convergencia final y la entrega a los Pasos 25 y 26.
+> **Estado:** aplicación implementada y verificada hasta el Paso 21. El README tiene
+> completas las secciones 1–3 y las decisiones de la sección 4 (Pasos 22–23); los tres
+> episodios de delegación se completan en el Paso 24, y la convergencia final y la
+> entrega en los Pasos 25 y 26.
 
 **Documentos de referencia:** [especificación](specs/reservas-laboratorio/spec.md),
 [plan técnico](specs/reservas-laboratorio/plan.md),
@@ -408,7 +409,6 @@ queda libre para una nueva reserva.
 
 **Pendientes de documentación y entrega:**
 
-- completar las secciones 3 y 4 del README (Pasos 23 y 24);
 - registrar los tres episodios reales de delegación (Paso 24);
 - ejecutar la convergencia final, revisar `spec.md` contra la implementación, ejecutar
   las comprobaciones desde un entorno limpio y preparar la entrega (Pasos 25 y 26).
@@ -431,16 +431,196 @@ queda libre para una nueva reserva.
 
 ## 3. Preparación del agente
 
-*Pendiente (se completa en el Paso 23).* Incluirá entorno y modelo, instrucciones,
-contexto suministrado, permisos y aprobaciones, adaptaciones y retención del progreso,
-con enlaces a evidencia de uso real en [`docs/agent/`](docs/agent/).
+La preparación inicial se registró el 2026-10-22 en
+[`docs/agent/preparacion-agente.md`](docs/agent/preparacion-agente.md). Ese documento
+conserva el entorno de la primera sesión, en la que Python y Reflex aún no estaban
+instalados. La actualización al 2026-10-26 está en la
+[§10 del mismo documento](docs/agent/preparacion-agente.md#10-actualización-al-2026-10-26)
+y en el [`progreso`](docs/agent/progreso.md).
+
+### 3.1 Entorno y modelo
+
+| Elemento | Valor observado |
+| --- | --- |
+| Arnés | OpenCode, modo código (lectura, edición y shell) |
+| Modelo | **Big Pickle**, id `opencode/big-pickle`, proveedor OpenCode |
+| Versión del modelo | No visible desde el entorno; la versión interna no se declara |
+| Sistema operativo y shell | Windows; PowerShell |
+| Repositorio | https://github.com/eme-19-87/sistema-reservas-agentes.git |
+| Rama de trabajo | `features_documentacion` |
+| Python | 3.13.11 en `.venv` |
+| Reflex | 0.10.0 |
+| pytest / ruff | 8.3.4 / 0.8.4 |
+| Red | Solo instalación inicial; la app, las pruebas y la documentación son locales |
+
+Las versiones se confirmaron con el intérprete del entorno virtual y con
+`pip show reflex pytest ruff`. El registro inicial anotó Python no disponible y el
+runtime de Reflex sin instalar; esas condiciones se resolvieron en las sesiones
+posteriores, cuyos resultados están en [`progreso.md`](docs/agent/progreso.md).
+
+### 3.2 Instrucciones
+
+Las instrucciones operativas son [`CLAUDE.md`](CLAUDE.md), la
+[§4 de la preparación](docs/agent/preparacion-agente.md#4-instrucciones-usadas-extracto-saneado-de-claudemd)
+y la skill [`reflex-rules`](.claude/skills/reflex-rules/SKILL.md). Las reglas aplicadas
+fueron:
+
+- la especificación es la fuente de verdad; no se escribe código sin respaldo en
+  `spec.md` y `plan.md`;
+- se implementa **una sola tarea pendiente** por indicación, en el orden de `tasks.md`, y
+  no se avanza a la siguiente;
+- se leen la especificación, el plan, las tareas y el progreso antes de tocar código;
+- en las reglas del dominio se escribe primero la prueba y después la implementación;
+- se ejecutan `pytest` y `ruff`; no se declara que las pruebas pasan sin haber ejecutado
+  el comando en la sesión;
+- el dominio, el servicio y el repositorio usan solo la biblioteca estándar y no importan
+  `reflex`; la persistencia usa SQLite y no `rx.Model`;
+- el `State` es delgado, no contiene reglas de negocio ni es fuente de verdad;
+- se usan solicitantes ficticios y no se incluyen secretos, credenciales ni
+  transcripciones completas;
+- los cambios de `spec.md` o `plan.md` se harían en un commit propio y con aprobación
+  humana; en el Paso 23 no se modificaron.
+
+El skill [`reflex-rules`](.claude/skills/reflex-rules/SKILL.md) contiene las reglas de la
+interfaz Reflex 0.10. Se usa como documento de reglas del proyecto; el arnés no asume que
+se cargue automáticamente como skill, tal como se registró en la
+[§5 de la preparación](docs/agent/preparacion-agente.md#5-skill-reflex-rules-y-uso-real).
+
+### 3.3 Contexto suministrado
+
+**Incluido:** [`CLAUDE.md`](CLAUDE.md),
+[`spec.md`](specs/reservas-laboratorio/spec.md),
+[`plan.md`](specs/reservas-laboratorio/plan.md),
+[`tasks.md`](specs/reservas-laboratorio/tasks.md),
+[`progreso.md`](docs/agent/progreso.md), la preparación, la plantilla de delegación, el
+skill `reflex-rules`, el código y las pruebas existentes, el historial de Git y la salida
+real de las comprobaciones.
+
+**Excluido:** variables de entorno y archivos `.env`, credenciales o tokens, datos reales
+de estudiantes, conversaciones completas, bases de datos de producción y cualquier acceso
+a red no aprobado. El detalle está en la
+[§6 de la preparación](docs/agent/preparacion-agente.md#6-contexto-incluido-y-excluido).
+El repositorio no contiene secretos ni datos reales.
+
+### 3.4 Permisos y aprobaciones
+
+| Categoría | Regla aplicada |
+| --- | --- |
+| Permitido sin preguntar | Leer el repositorio; editar `src/`, `reservas_ui/`, `tests/`, `docs/` y el README; marcar casillas en `tasks.md`; ejecutar pruebas, linter y la CLI sobre bases temporales; `git status`, `git diff`, `git add` y `git commit` en la rama de trabajo. |
+| Requiere aprobación humana | Instalar o agregar dependencias y ejecutar comandos con red; cambiar `spec.md` o `plan.md`; borrar o reiniciar `data/reservas.db`; `git push`, cambios de rama o reescritura de historial; levantar `reflex run` de forma prolongada. |
+| Prohibido | Acceso a red fuera de la instalación aprobada; lectura de secretos; escritura fuera del repositorio. |
+
+El detalle está en [`CLAUDE.md`](CLAUDE.md) y en la
+[§7 de la preparación](docs/agent/preparacion-agente.md#7-herramientas-permisos-y-aprobaciones-previstas).
+El registro inicial dejó pendientes la instalación de Python y la descarga del runtime de
+Reflex; la instalación se completó en sesiones posteriores. En el Paso 23 no se instalaron
+dependencias, no se usó red, no se modificaron `spec.md` ni `plan.md`, no se reinició la
+base de datos, no se hizo `git push` y no se ejecutaron comandos destructivos.
+
+### 3.5 Adaptaciones con evidencia real
+
+| Adaptación | Aplicación en el proyecto | Evidencia |
+| --- | --- | --- |
+| Turnos consecutivos | Se probaron los límites `10:00–11:00` + `11:00–12:00` (permitido) y `10:00–11:00` + `10:30–11:30` (rechazado). | [`tests/test_solapamiento.py`](tests/test_solapamiento.py), [`progreso.md`](docs/agent/progreso.md) (Paso 6) y commit `f8eb24c`. |
+| Persistencia tras reinicio | Se ejecutó la prueba automática y el procedimiento manual de reservar, cancelar, detener y volver a iniciar `reflex run`. | [`tests/test_persistencia.py`](tests/test_persistencia.py), [`verificacion-persistencia.md`](docs/agent/verificacion-persistencia.md) y commit `ac6894b`. |
+| Frontera Reflex | `src/reservas/` no importa `reflex`; la comprobación automática y la búsqueda de imports no encontraron dependencias. | [`tests/test_frontera_reflex.py`](tests/test_frontera_reflex.py), [`plan.md`](specs/reservas-laboratorio/plan.md). |
+| Skill `reflex-rules` | Se conserva como documento de reglas de la UI; no se asume carga automática por el arnés. | [`.claude/skills/reflex-rules/SKILL.md`](.claude/skills/reflex-rules/SKILL.md) y [`preparacion-agente.md`](docs/agent/preparacion-agente.md). |
+| Revisión humana | Se revisan `git diff`, pruebas, coincidencia con `spec.md` y, en la UI, la comprobación manual del navegador. | [`progreso.md`](docs/agent/progreso.md) (Pasos 20 y 21) y [`CLAUDE.md`](CLAUDE.md). |
+
+No se registran correcciones que no hayan ocurrido. Los episodios de delegación se
+completan en el Paso 24; esta sección no los sustituye.
+
+### 3.6 Retención del progreso y limitaciones
+
+El progreso se conserva versionado en [`docs/agent/progreso.md`](docs/agent/progreso.md),
+con entradas para las tareas cerradas, comandos, versiones, resultados y pasos no
+ejecutados. Cada tarea cerrada queda además en un commit y el protocolo de revisión
+humana exige revisar el `git diff` y la salida de las pruebas antes de aceptar el
+resultado.
+
+Limitaciones conocidas: la versión interna del modelo no es visible; la comprobación de
+clics del navegador es manual y no se automatiza; el skill `reflex-rules` no se carga
+automáticamente como skill del arnés; y la instalación inicial requiere red para el
+runtime de Reflex.
 
 ## 4. Registro de decisiones y delegación
 
-*Pendiente (se completa en el Paso 24).* Incluirá las decisiones significativas con
-motivos, alternativas y consecuencias, y tres episodios reales de delegación con enlaces
-a commits, archivos o pruebas. El avance se registra en
-[`docs/agent/delegacion.md`](docs/agent/delegacion.md).
+### 4.1 Decisiones significativas
+
+#### SQLite para reservas y JSON solo para el inventario
+
+- **Motivo:** las reservas necesitan transacciones, restricciones y consultas; SQLite es
+  parte de la biblioteca estándar y evita un servidor. El inventario es pequeño, estático
+  y de solo lectura.
+- **Alternativas descartadas:** usar JSON plano también para las reservas, descartado
+  porque no ofrece transacciones ni restricciones y aumenta el riesgo de perder
+  actualizaciones o confirmar solapamientos; usar un motor de base de datos externo,
+  innecesario para una aplicación local.
+- **Consecuencias:** el esquema y los índices se crean en `repositorio.py`;
+  `data/reservas.db` se ignora en Git, se puede respaldar y se reinicia con `--reset`; no
+  se cubre concurrencia distribuida.
+- **Evidencia:** [`repositorio.py`](src/reservas/repositorio.py),
+  [`inventario.py`](src/reservas/inventario.py),
+  [`test_repositorio.py`](tests/test_repositorio.py) y
+  [`test_persistencia.py`](tests/test_persistencia.py).
+
+#### Reflex sin `rx.Model`
+
+- **Motivo:** mantener dominio, servicio y repositorio en Python estándar, verificables
+  sin levantar Reflex y sin acoplar las reglas a las migraciones del framework.
+- **Alternativas descartadas:** `rx.Model` o SQLModel, descartados por el acoplamiento de
+  la lógica y las pruebas al ORM y a Reflex.
+- **Consecuencias:** el esquema se mantiene a mano en `repositorio.py`; el `State` no
+  contiene un modelo ORM; no se usa `reflex.db`; la UI y el núcleo se prueban por separado.
+- **Evidencia:** [`test_frontera_reflex.py`](tests/test_frontera_reflex.py),
+  [`rxconfig.py`](rxconfig.py) y [`estado.py`](reservas_ui/estado.py).
+
+#### Intervalos semiabiertos
+
+- **Motivo:** modelar `[inicio, fin)` permite que dos reservas consecutivas compartan un
+  límite sin superponerse y refleja la regla del laboratorio.
+- **Alternativas descartadas:** intervalos cerrados `[inicio, fin]`, que rechazarían
+  `10:00–11:00` seguido de `11:00–12:00`; comparaciones de cadenas sin parsear, que no
+  validarían correctamente fechas y límites.
+- **Consecuencias:** la superposición se calcula con
+  `a.inicio < b.fin Y b.inicio < a.fin`; los límites consecutivos y las reservas
+  simultáneas de unidades distintas son válidos; el cálculo vive en el dominio y no en la
+  UI.
+- **Evidencia:** [`dominio.py`](src/reservas/dominio.py),
+  [`test_solapamiento.py`](tests/test_solapamiento.py) y commit `f8eb24c`.
+
+#### Handlers delgados en el `State`
+
+- **Motivo:** el `State` debe contener estado de pantalla, no reglas de negocio. SQLite es
+  la fuente de verdad y `presentacion.py` concentra mensajes y filas para la UI.
+- **Alternativas descartadas:** implementar reglas en los handlers o en los componentes
+  Reflex, descartado porque duplicaría la lógica, dificultaría las pruebas sin servidor y
+  abriría la puerta a mensajes inconsistentes.
+- **Consecuencias:** hay una capa adicional (`presentacion.py`); cada operación recarga
+  desde SQLite; las pruebas de handlers usan una base temporal y no necesitan navegador.
+- **Evidencia:** [`estado.py`](reservas_ui/estado.py),
+  [`presentacion.py`](reservas_ui/presentacion.py),
+  [`test_ui_estado.py`](tests/test_ui_estado.py) y
+  [`test_ui_presentacion.py`](tests/test_ui_presentacion.py).
+
+#### Reflex para la interfaz y CLI solo para mantenimiento
+
+- **Motivo:** el alcance pide una interfaz web local; Reflex permite construirla en Python
+  y el CLI `init-db` resuelve la carga y el reinicio de datos.
+- **Alternativas descartadas:** una aplicación solo de consola, descartada porque no cubre
+  la interfaz solicitada; un frontend JavaScript separado, descartado por el costo de
+  mantener dos pilas.
+- **Consecuencias:** la primera ejecución requiere red para el runtime de frontend; la
+  comprobación de clics es manual; el CLI queda limitado a `init-db`.
+- **Evidencia:** [`reservas_ui/`](reservas_ui/), [`rxconfig.py`](rxconfig.py),
+  [`test_ui_humo.py`](tests/test_ui_humo.py) y la sección 2 de este README.
+
+### 4.2 Delegación
+
+Los tres episodios reales de delegación se completan en el Paso 24. La plantilla, el
+formato y las reglas para no inventar resultados están en
+[`docs/agent/delegacion.md`](docs/agent/delegacion.md). Hasta entonces, los episodios
+obligatorios permanecen pendientes y no se presentan como completados.
 
 ## Comenzar con Claude Code
 

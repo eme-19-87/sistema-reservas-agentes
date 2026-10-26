@@ -1040,3 +1040,85 @@ prueba de inicialización y reset.
 solicitados, los enlaces resuelven, los comandos de datos se validaron con una base
 temporal y la suite completa sigue en 66/66. El Paso 22 queda completado sin modificar
 código de la aplicación.
+
+## Paso 23 - README: Preparación del agente y decisiones
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Objetivo:** completar la sección 3 del README (entorno y modelo, instrucciones,
+contexto, permisos y aprobaciones, adaptaciones con evidencia y retención del progreso) y
+la sección 4.1 con las decisiones significativas, sus motivos, alternativas y
+consecuencias. Los tres episodios de delegación corresponden al Paso 24.
+
+**Trabajo realizado:**
+
+- Se reescribió `README.md` §3 con el arnés OpenCode, el modelo Big Pickle
+  (`opencode/big-pickle`), el entorno actual (Windows/PowerShell, Python 3.13.11,
+  Reflex 0.10.0, pytest 8.3.4 y ruff 0.8.4), la rama `features_documentacion` y enlaces
+  a la preparación, `CLAUDE.md`, la especificación, el plan, las tareas y el progreso.
+- Se documentaron las instrucciones aplicadas, el contexto incluido y excluido, los
+  permisos y aprobaciones, las adaptaciones verificadas (turnos consecutivos,
+  persistencia, frontera Reflex y skill `reflex-rules`) y la retención/revisión del
+  progreso.
+- Se añadió `README.md` §4.1 con cinco decisiones: SQLite frente a JSON para las
+  reservas, Reflex sin `rx.Model`, intervalos semiabiertos, handlers delgados en el
+  `State` y Reflex para la interfaz con CLI solo para mantenimiento. Cada una incluye
+  motivo, alternativas descartadas, consecuencias y evidencia.
+- Se actualizó `docs/agent/preparacion-agente.md` con la §10, que conserva la preparación
+  inicial del 2026-10-22 y registra el entorno vigente al 2026-10-26.
+- Se dejó `README.md` §4.2 como pendiente explícito del Paso 24; no se inventaron
+  episodios ni correcciones.
+- No se modificaron `spec.md`, `plan.md` ni el código de la aplicación.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4. El proyecto
+declara Python >=3.11 en `pyproject.toml`.
+
+**Resultados esperados y observados:**
+
+| Comprobación | Esperado | Observado |
+| --- | --- | --- |
+| Secciones 3 y 4.1 del README | Incluir entorno, preparación y decisiones con evidencia | Contenido completo; §4.2 queda pendiente para el Paso 24 |
+| Enlaces y anclas | Todas las rutas y anclas resuelven | 59 enlaces, 35 encabezados y 0 problemas; incluidas las anclas de `preparacion-agente.md` |
+| `python -m pytest` | Suite verde | `66 passed in 8.43s`; código 0 |
+| Pruebas seleccionadas de frontera, solapamiento y persistencia | Verificar la evidencia citada | `10 passed`; código 0; `NO_REFLEX_IMPORT_IN_SRC` |
+| `git diff --check` | Sin errores de whitespace | Código 0; solo avisos de conversión LF/CRLF de Git |
+| `ruff check .` | Sin cambios de código en este paso | No se repitió; el último resultado del Paso 22 sigue siendo 115 hallazgos preexistentes |
+
+La comprobación de enlaces se hizo con un script local que también resolvió las anclas de
+los archivos Markdown de destino. La suite completa y las pruebas seleccionadas se
+ejecutaron en esta sesión con el intérprete de `.venv`.
+
+**Decisiones:**
+
+- Se mantuvo la preparación inicial de `docs/agent/preparacion-agente.md` como registro
+  histórico y se añadió una actualización separada para no borrar la evidencia del
+  entorno del 2026-10-22.
+- Se documentó el modelo y el arnés realmente observados, sin afirmar una versión interna
+  del modelo que el entorno no expone.
+- Las decisiones se enlazaron con archivos, pruebas y commits verificables; los episodios
+  de delegación se dejaron para el Paso 24 para no presentar resultados no ocurridos.
+- No se modificaron `spec.md`, `plan.md` ni el código porque el alcance del Paso 23 es
+  exclusivamente de documentación.
+
+**Pasos no ejecutados:**
+
+- No se inició el Paso 24 ni se registraron los tres episodios de delegación.
+- No se instalaron dependencias, no se usó red, no se reinició `data/reservas.db` y no se
+  ejecutó el flujo manual del navegador.
+- No se modificaron `spec.md`, `plan.md` ni archivos de código.
+- No se repitió `ruff check .`; no hubo cambios de código en este paso.
+- No se hizo `git push`.
+
+**Evidencia:**
+
+- `README.md`: secciones 3 y 4.1 completas; §4.2 pendiente del Paso 24.
+- `docs/agent/preparacion-agente.md`: §10 con el entorno vigente.
+- `docs/agent/progreso.md`: este registro.
+- `specs/reservas-laboratorio/tasks.md`: Paso 23 marcado como completado.
+
+**Resultado:** el README documenta el entorno y el modelo reales, las instrucciones y
+permisos, las adaptaciones con evidencia y las decisiones significativas con alternativas
+y consecuencias. Los enlaces y anclas resuelven, la suite completa sigue en 66/66 y el
+Paso 23 queda completado sin modificar código ni iniciar el Paso 24.

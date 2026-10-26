@@ -87,7 +87,7 @@
 - \[x\] **Paso 22 — README: Especificación y Solución**
   - Sección 1: problema, alcance, requisitos verificables, reglas, supuestos (zona horaria, formato, fechas pasadas, límites), criterios de aceptación; enlace a [`spec.md`](http://spec.md).
   - Sección 2: estructura, decisiones, requisitos previos y versiones (Python, Reflex, red solo en la instalación inicial), instalación, carga y reinicio de datos con advertencia de borrado, comandos, ejemplo de entrada y salida, ubicación de los datos, pendientes y limitaciones (incluido que los clics del navegador no se automatizan).
-- \[ \] **Paso 23 — README: Preparación del agente y decisiones**
+- \[x\] **Paso 23 — README: Preparación del agente y decisiones**
   - Sección 3: entorno y modelo, instrucciones, contexto, permisos, adaptaciones con enlaces a evidencia real.
   - Sección 4: decisiones significativas con motivos, alternativas y consecuencias (SQLite vs JSON, Reflex sin `rx.Model`, intervalos semiabiertos, handlers delgados).
 - \[ \] **Paso 24 — Tres episodios de delegación**
