@@ -532,3 +532,32 @@ All checks passed!
 ```
 
 Resultado: 12/12 pruebas de handlers y 62/62 de la suite completa; ruff sin hallazgos en los archivos modificados.
+
+## Paso 18 - Componentes y página
+
+Estado: completado.
+
+Fecha: 2026-10-26
+
+Trabajo realizado: Se creó `reservas_ui/componentes.py` con las zonas de disponibilidad, reserva, reservas y mensajes, además de la tabla con cancelación solo para filas activas. Se reemplazó la página inicial provisional de `reservas_ui/reservas_ui.py` por la composición de esas zonas y se registró `/` con `on_load=State.on_load`. Se agregaron etiquetas `<label>` asociadas mediante `html_for` a cada control, IDs estables en formularios, etiquetas, controles y botones, y botones de tipo `submit` para permitir el envío con Enter. Se añadieron handlers explícitos de actualización de campos y filtros, además de `limpiar_filtros`, porque Reflex 0.10 no genera setters automáticos; `unidades_ids` se expone como var calculada para los selectores. `reservar` y `cancelar` limpian el resultado de disponibilidad para evitar mensajes obsoletos y dejar visible el mensaje de la operación correspondiente. Los componentes solo contienen presentación y condicionales visuales; no incorporan reglas de negocio.
+
+Cambio de lockfile: al usar entradas controladas, Reflex incorporó `react-debounce-input` y `lodash.debounce` en `reflex.lock/package.json` y `reflex.lock/package-lock.json`; se conservan porque son necesarios para compilar y ejecutar la interfaz con los campos controlados.
+
+Pruebas agregadas o ajustadas en `tests/test_ui_estado.py`: los handlers de los seis campos actualizan sus variables; la prueba de filtros ahora usa `actualizar_filtro_unidad`, `actualizar_filtro_estado` y `limpiar_filtros`, verificando los subconjuntos y la vista sin filtros.
+
+Verificación ejecutada:
+```text
+.venv\Scripts\python.exe -c "import reservas_ui.reservas_ui as m; print(type(m.app).__name__)"
+App
+
+.venv\Scripts\python.exe -m pytest
+63 passed in 12.66s
+
+.venv\Scripts\python.exe -m ruff check reservas_ui\componentes.py reservas_ui\reservas_ui.py reservas_ui\estado.py tests\test_ui_estado.py
+All checks passed!
+
+.venv\Scripts\python.exe -m reflex compile
+Success: App compiled successfully in 53.589 seconds.
+```
+
+Resultado: importación correcta, 63/63 pruebas de la suite completa, ruff sin hallazgos en los archivos modificados y compilación de la app exitosa. La comprobación manual en navegador queda pendiente para el Paso 20.

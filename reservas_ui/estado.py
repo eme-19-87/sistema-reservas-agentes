@@ -26,6 +26,10 @@ class State(rx.State):
     resultado_disp: str = ""
     conflictos_disp: list[dict[str, Any]] = []
 
+    @rx.var
+    def unidades_ids(self) -> list[str]:
+        return [unidad["id"] for unidad in self.unidades]
+
     def on_load(self):
         inicializar_bd()
         try:
@@ -119,6 +123,24 @@ class State(rx.State):
         except Exception:
             return str(exc)
 
+    def actualizar_unidad(self, valor: str) -> None:
+        self.unidad_seleccionada = valor
+
+    def actualizar_solicitante(self, valor: str) -> None:
+        self.solicitante = valor
+
+    def actualizar_inicio_disp(self, valor: str) -> None:
+        self.inicio_disp = valor
+
+    def actualizar_fin_disp(self, valor: str) -> None:
+        self.fin_disp = valor
+
+    def actualizar_inicio_res(self, valor: str) -> None:
+        self.inicio_res = valor
+
+    def actualizar_fin_res(self, valor: str) -> None:
+        self.fin_res = valor
+
     def consultar_disponibilidad(self):
         self._limpiar_mensajes_disp()
         unidad = self._obtener_unidad_consulta()
@@ -177,7 +199,7 @@ class State(rx.State):
             self._limpiar_campos_reserva()
 
     def reservar(self):
-        self._limpiar_mensajes()
+        self._limpiar_mensajes_disp()
         unidad = self._obtener_unidad_consulta()
         try:
             res = presentacion.reservar(
@@ -198,7 +220,7 @@ class State(rx.State):
         )
 
     def cancelar(self, reserva_id: int):
-        self._limpiar_mensajes()
+        self._limpiar_mensajes_disp()
         try:
             res = presentacion.cancelar(servicio, reserva_id)
         except Exception as exc:
@@ -209,3 +231,16 @@ class State(rx.State):
     def aplicar_filtros(self):
         self._limpiar_mensajes()
         self._recargar_reservas()
+
+    def actualizar_filtro_unidad(self, valor: str) -> None:
+        self.filtro_unidad = valor
+        self.aplicar_filtros()
+
+    def actualizar_filtro_estado(self, valor: str) -> None:
+        self.filtro_estado = valor
+        self.aplicar_filtros()
+
+    def limpiar_filtros(self) -> None:
+        self.filtro_unidad = ""
+        self.filtro_estado = ""
+        self.aplicar_filtros()
