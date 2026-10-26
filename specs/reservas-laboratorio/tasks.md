@@ -68,20 +68,20 @@
 - \[x\] **Paso 17 —** `State`**: cancelar y filtros**
   - Handler de cancelación y filtros por unidad y estado.
   - Pruebas: la cancelada sigue en la lista como CANCELADA con sus datos; el horario queda libre; doble cancelación muestra error; filtros devuelven los subconjuntos esperados.
-- \[ \] **Paso 18 — Componentes y página**
+- \[x\] **Paso 18 — Componentes y página**
   - [`componentes.py`](http://componentes.py) y `reservas_ui.py`: formulario de disponibilidad, formulario de reserva, tabla de reservas con botón «Cancelar» solo en activas, zona de mensajes.
   - Labels asociados a campos, navegación por teclado, estados de foco básicos.
   - Sin lógica de negocio en componentes.
-- \[ \] **Paso 19 — Prueba de humo de la app**
+- \[x\] **Paso 19 — Prueba de humo de la app**
   - `test_ui_humo.py`: `reservas_ui` se importa, la página `/` está registrada, el `State` declara todas sus vars.
   - Ejecutar la suite completa (`pytest -q`) y `ruff check .`.
-- \[ \] **Paso 20 — Comprobación manual en navegador**
+- \[x\] **Paso 20 — Comprobación manual en navegador**
   - Con una BD temporal, ejecutar el procedimiento: reservar 10:00–11:00 en MIC-01 → rechazar 10:30–11:30 → aceptar 11:00–12:00 → reservar MIC-02 10:00–11:00 → cancelar y verificar liberación.
   - Registrar resultados **esperados y observados**, y los pasos no ejecutados.
 
 ## Fase 3 — Verificación, documentación y entrega
 
-- \[ \] **Paso 21 — Persistencia manual tras reinicio**
+- \[x\] **Paso 21 — Persistencia manual tras reinicio**
   - `docs/agent/verificacion-persistencia.md`: reservar y cancelar desde la UI, detener `reflex run`, volver a ejecutarlo y comprobar que activas y canceladas siguen presentes.
   - Registrar resultados esperados y observados.
 - \[ \] **Paso 22 — README: Especificación y Solución**

@@ -532,3 +532,448 @@ All checks passed!
 ```
 
 Resultado: 12/12 pruebas de handlers y 62/62 de la suite completa; ruff sin hallazgos en los archivos modificados.
+
+## Paso 18 - Componentes y página
+
+Estado: completado.
+
+Fecha: 2026-10-26
+
+Trabajo realizado: Se creó `reservas_ui/componentes.py` con las zonas de disponibilidad, reserva, reservas y mensajes, además de la tabla con cancelación solo para filas activas. Se reemplazó la página inicial provisional de `reservas_ui/reservas_ui.py` por la composición de esas zonas y se registró `/` con `on_load=State.on_load`. Se agregaron etiquetas `<label>` asociadas mediante `html_for` a cada control, IDs estables en formularios, etiquetas, controles y botones, y botones de tipo `submit` para permitir el envío con Enter. Se añadieron handlers explícitos de actualización de campos y filtros, además de `limpiar_filtros`, porque Reflex 0.10 no genera setters automáticos; `unidades_ids` se expone como var calculada para los selectores. `reservar` y `cancelar` limpian el resultado de disponibilidad para evitar mensajes obsoletos y dejar visible el mensaje de la operación correspondiente. Los componentes solo contienen presentación y condicionales visuales; no incorporan reglas de negocio.
+
+Cambio de lockfile: al usar entradas controladas, Reflex incorporó `react-debounce-input` y `lodash.debounce` en `reflex.lock/package.json` y `reflex.lock/package-lock.json`; se conservan porque son necesarios para compilar y ejecutar la interfaz con los campos controlados.
+
+Pruebas agregadas o ajustadas en `tests/test_ui_estado.py`: los handlers de los seis campos actualizan sus variables; la prueba de filtros ahora usa `actualizar_filtro_unidad`, `actualizar_filtro_estado` y `limpiar_filtros`, verificando los subconjuntos y la vista sin filtros.
+
+Verificación ejecutada:
+```text
+.venv\Scripts\python.exe -c "import reservas_ui.reservas_ui as m; print(type(m.app).__name__)"
+App
+
+.venv\Scripts\python.exe -m pytest
+63 passed in 12.66s
+
+.venv\Scripts\python.exe -m ruff check reservas_ui\componentes.py reservas_ui\reservas_ui.py reservas_ui\estado.py tests\test_ui_estado.py
+All checks passed!
+
+.venv\Scripts\python.exe -m reflex compile
+Success: App compiled successfully in 53.589 seconds.
+```
+
+Resultado: importación correcta, 63/63 pruebas de la suite completa, ruff sin hallazgos en los archivos modificados y compilación de la app exitosa. La comprobación manual en navegador queda pendiente para el Paso 20.
+
+## Incidencia posterior al Paso 18 - Error de dispatch por frontend obsoleto
+
+**Estado:** resuelto en el entorno; no requirió cambios de código.
+
+**Fecha:** 2026-10-26.
+
+**Síntoma reportado:** al ejecutar `reflex run` aparecía en la terminal:
+
+```text
+[Reflex Frontend Exception] [SID: Xll2qfscH-5FnaurAAAB] State update failed:
+no dispatch function for substate(s)
+'reflex___state____state.reservas_ui___estado____state'.
+This indicates a frontend/backend state mismatch.
+```
+
+La compilación terminaba correctamente y las páginas se mostraban, pero el
+backend registraba el error enviado por el cliente.
+
+**Diagnóstico realizado:**
+
+- Se localizó el origen del mensaje en `.web/utils/state.js:899`: el cliente
+  valida que exista un dispatcher para cada substate del delta y, si falta,
+  emite `dispatch_function_missing` al backend.
+- Se revisó `.web/utils/context.jsx` y se confirmó que el frontend recién
+  compilado sí contenía
+  `reflex___state____state.reservas_ui___estado____state` en `initialState`,
+  `StateContexts` y `SUBSTATES`, incluido su dispatcher.
+- Se revisó `reservas_ui/reservas_ui.py` y se confirmó que el Paso 18 registra
+  `on_load=State.on_load`, por lo que el backend empieza a enviar ese substate
+  al cargar la página.
+- Se comparó con el estado anterior al Paso 18: la página era todavía la
+  mínima y no registraba `reservas_ui.estado.State` ni tenía `on_load`. Por eso
+  una pestaña abierta desde antes de ese paso no posee el dispatcher nuevo.
+- Se levantó la app en los puertos 3005/8005 y se cargó con Edge en modo
+  headless usando perfiles limpios, incluida una carga adicional con el perfil
+  por defecto. No se reprodujo el error con clientes nuevos.
+- Se repitieron varias cargas con perfiles temporales y la app respondió sin el
+  error, cargando las unidades y las reservas.
+- Conclusión: el error provenía de una pestaña o bundle anterior al Paso 18
+  que se reconectó al backend nuevo. El frontend actual no tiene el problema.
+
+**Pasos de solución ejecutados:**
+
+1. Se detuvo el proceso de `reflex run` que se estaba usando para la
+   reproducción.
+2. Se limpiaron los artefactos generados `.web/` y `.states/`. La primera
+   limpieza dejó `node_modules` dentro de `.web`; se eliminó por completo con
+   `rd /s /q .web` y se repitió la inicialización.
+3. Se ejecutó de nuevo el servidor en los puertos por defecto:
+
+   ```powershell
+   .\.venv\Scripts\python.exe -m reflex run
+   ```
+
+4. Se cargó `http://localhost:3000/` con un perfil de navegador limpio.
+5. Se comprobó que `on_load` cargó las 5 unidades y las reservas existentes, y
+   que no apareció el error de dispatch.
+6. Se detuvo el servidor de prueba para no dejarlo en segundo plano.
+
+**Verificación ejecutada:**
+
+```text
+.venv\Scripts\python.exe -m reflex run
+App running at: http://localhost:3000/
+Backend running at: http://0.0.0.0:8000
+
+Carga con Edge headless, perfil limpio:
+- DOM generado: 28.940 bytes.
+- Unidades disponibles en el selector: MIC-01, MIC-02, OSC-01, MUL-01, FUE-01.
+- Reservas existentes visibles en la tabla.
+- Sin mensaje de dispatch faltante en la terminal.
+```
+
+**Resultado:** el error no se reproduce con el frontend actual. La solución para
+una sesión que ya lo mostró es cerrar las pestañas antiguas de
+`http://localhost:3000`, abrir una pestaña nueva o forzar recarga con
+`Ctrl+Shift+R`, y reiniciar la terminal para descartar el mensaje anterior.
+
+**Pasos no ejecutados y limitaciones:**
+
+- No se pudo inspeccionar directamente la pestaña original del usuario; el
+  diagnóstico se basa en el frontend generado, el historial del Paso 18 y la
+  reproducción fallida con clientes nuevos.
+- No se modificó código de la aplicación ni se actualizó Reflex.
+- No se volvió a ejecutar `pytest` porque no hubo cambios de código; la
+  comprobación manual de clics sigue pendiente para el Paso 20.
+- El árbol de trabajo quedó limpio y la rama permaneció en `4cfc567`.
+
+## Corrección — EBUSY al reservar (2026-10-26)
+
+**Estado:** corregido, verificado y versionado en `05808ed`; registro de acciones
+actualizado en este documento.
+
+**Síntoma:** al reservar, Reflex intentaba reconciliar los paquetes del frontend,
+mostraba `Removing unused frontend packages` y fallaba con `EBUSY`. En la ejecución
+completa también aparecía `[ERROR] Unexpected exit from worker-1`.
+
+**Causa raíz 1 — dependencias de desarrollo mal clasificadas:**
+
+- Reflex 0.10 ejecuta `npm add -d` para las dependencias de desarrollo.
+- En npm 11, `-d` significa `--loglevel info`; el alias de `--save-dev` es `-D`.
+- Por eso las 10 dependencias de desarrollo quedaron guardadas en `dependencies`.
+- En cada arranque, Reflex intentaba sacarlas de `dependencies` y volver a añadirlas
+  mientras Vite mantenía abiertos archivos de `node_modules`, produciendo `EBUSY`.
+
+**Causa raíz 2 — SQLite dentro de las rutas de hot reload:**
+
+- `data/` estaba dentro de las rutas de recarga del backend.
+- Cada escritura de SQLite crea/elimina `reservas.db-journal`; el watcher lo detectaba
+  y reiniciaba el backend (`Changes detected, reloading workers..`).
+- En la ejecución completa ese reinicio terminaba con
+  `[ERROR] Unexpected exit from worker-1`.
+
+**Acciones ejecutadas:**
+
+- Se reprodujo el fallo y se revisó el log de `reflex run`; se identificaron
+  `Removing unused frontend packages`, `EBUSY` y `Unexpected exit from worker-1`.
+- Se inspeccionaron los metadatos de Reflex 0.10 y se confirmó que ejecuta
+  `npm add -d`; en npm 11, `-d` significa `--loglevel info`, no `--save-dev`.
+- Se revisó `reflex.lock/package.json` y se confirmó que las 10 dependencias de
+  desarrollo estaban clasificadas como `dependencies`.
+- Se corrigió manualmente el manifiesto con 14 dependencias de ejecución y 10 de
+  desarrollo; se regeneró `reflex.lock/package-lock.json`.
+- Se sincronizaron `.web/package.json` y `.web/package-lock.json` desde
+  `reflex.lock/`, y se ejecutó `npm install --legacy-peer-deps` para añadir los
+  5 paquetes que faltaban.
+- Se confirmó que `data/` estaba dentro de las rutas de hot reload y que las
+  escrituras de SQLite provocaban el reinicio del backend.
+- Se añadió `REFLEX_HOT_RELOAD_EXCLUDE_PATHS="data"` en `rxconfig.py`.
+- Se ejecutó `reflex compile` y después `reflex run --loglevel debug`; se
+  comprobó que `data` no aparece en `Reload paths` y que no hay `EBUSY`,
+  recargas por SQLite ni salida inesperada del worker.
+- Se probó una reserva real desde la interfaz con Edge headless y CDP; se creó
+  la reserva ID 7 y se verificó que el backend siguiera estable en 3000/8000.
+- Se ejecutaron `pytest -q`, `ruff check rxconfig.py` y
+  `ruff format --check rxconfig.py`.
+- Se eliminaron las reservas de prueba 4–7, se conservó el ID 3 activo y se
+  detuvo el servidor para dejar libres los puertos 3000 y 8000.
+- Se documentó la corrección en este archivo y se versionó en el commit
+  `05808ed`.
+
+**Cambios realizados:**
+
+- `reflex.lock/package.json`: se separaron 14 dependencias de ejecución y 10 de
+  desarrollo en `dependencies` y `devDependencies`. Se conservaron las versiones de
+  `lucide-react`, `react-debounce-input`, `react-error-boundary` y `sonner`.
+- `reflex.lock/package-lock.json`: se regeneró con las secciones correctas.
+- `.web/package.json` y `.web/package-lock.json`: se sincronizaron desde
+  `reflex.lock/`; `npm install --legacy-peer-deps` añadió los 5 paquetes que faltaban.
+- `rxconfig.py`: se añadió
+  `os.environ.setdefault("REFLEX_HOT_RELOAD_EXCLUDE_PATHS", "data")` para que las
+  escrituras de SQLite no reinicien el backend. Se usa la ruta relativa `data` porque
+  la variable de entorno separa elementos con `:` y una ruta absoluta de Windows se
+  partiría por la letra de unidad.
+
+**Verificación ejecutada:**
+
+```text
+$ .\.venv\Scripts\reflex.exe compile
+Success: App compiled successfully in 19.546 seconds.
+
+$ .\.venv\Scripts\reflex.exe run --loglevel debug
+Reload paths: [... sin la carpeta data ...]
+Removing unused frontend packages: no aparece
+EBUSY: no aparece
+Changes detected: no aparece al escribir en la base
+Unexpected exit from worker-1: no aparece
+App running at: http://localhost:3000/
+Backend running at: http://0.0.0.0:8000
+```
+
+**Prueba de interfaz real:**
+
+- Se cargó la app con Edge headless y CDP.
+- Se completaron `Prueba UI`, `MIC-01`, `2026-10-27T15:00` y `2026-10-27T16:00`.
+- La interfaz mostró `Reserva creada con ID 7.` y la fila apareció en la tabla.
+- El backend siguió escuchando en 3000/8000, sin `EBUSY`, sin recarga y sin caída.
+- La escritura directa en SQLite desde el servicio también dejó el backend estable.
+
+**Pruebas automatizadas:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest -q
+............................................................... [100%]
+# código de salida 0
+
+$ .\.venv\Scripts\ruff.exe check rxconfig.py
+All checks passed!
+
+$ .\.venv\Scripts\ruff.exe format --check rxconfig.py
+1 file already formatted
+```
+
+`ruff check .` sigue reportando 115 hallazgos preexistentes en el repositorio; no se
+corrigieron porque están fuera del alcance de esta corrección.
+
+**Limpieza:**
+
+- Se cancelaron las reservas de prueba 4, 5 y 6, y se eliminaron las filas de prueba
+  4–7 junto con el contador de `sqlite_sequence`.
+- La base quedó con los IDs 1 y 2 cancelados y el ID 3 activo (`OSC-01`, `Kike`,
+  `2026-10-26T22:00`–`23:00`).
+- Se detuvo el servidor de prueba; los puertos 3000 y 8000 quedaron libres.
+
+**Decisiones:**
+
+- No se modificó `site-packages` de Reflex; la corrección se hace en los metadatos del
+  proyecto y en `rxconfig.py`, por lo que es reproducible.
+- Se descartó el uso de una ruta absoluta en `REFLEX_HOT_RELOAD_EXCLUDE_PATHS` por el
+  separador `:` de la variable en Windows.
+- No se repitió la llamada a `install_frontend_packages` con un conjunto vacío, porque
+  eliminaba los paquetes personalizados del frontend.
+
+**Pendiente:**
+
+- Continuar con los pasos 19–20 de `specs/reservas-laboratorio/tasks.md`.
+
+## Paso 19 - Prueba de humo de la app
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se creó `tests/test_ui_humo.py` con tres pruebas: importación de
+`reservas_ui.reservas_ui` y tipo `rx.App`; registro de la ruta raíz, normalizada por
+Reflex 0.10 a `index`, en `_page_routes` y `_unevaluated_pages`; y declaración en
+`State` de las 14 vars de formulario y mensajes, más la calculada `unidades_ids`. No se
+levantó servidor ni navegador y no se parchearon vars de clase.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4.
+
+**Verificación ejecutada:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest tests\test_ui_humo.py -q
+3 passed in 1.11s
+
+$ .\.venv\Scripts\python.exe -m pytest -q
+66 passed in 10.29s
+
+$ .\.venv\Scripts\ruff.exe check tests\test_ui_humo.py
+All checks passed!
+
+$ .\.venv\Scripts\ruff.exe format --check tests\test_ui_humo.py
+1 file already formatted
+```
+
+`ruff check .` devuelve código 1 y 115 hallazgos preexistentes (88 E501, 16 F401,
+7 I001 y 4 E731), ninguno en `tests/test_ui_humo.py`; no se corrigieron porque están
+fuera del alcance del Paso 19.
+
+**Resultado:** las tres pruebas nuevas pasan; la suite completa queda en 66/66; el
+archivo nuevo pasa `ruff check` y `ruff format --check`. El fallo de `ruff check .` es
+el mismo conjunto preexistente documentado antes del Paso 19.
+
+**Pasos no ejecutados:** la comprobación manual en navegador corresponde al Paso 20 y
+no se inició.
+
+## Paso 20 - Comprobación manual en navegador
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se levantó una instancia aislada de Reflex en los puertos
+3010/8010 con `RESERVAS_DB` apuntando a
+`C:\Users\espin\AppData\Local\Temp\opencode\reservas-paso20.db`; la base se creó vacía.
+Se cargó la app en Edge 156 headless y se ejecutó el procedimiento con clics y escritura
+reales sobre el DOM mediante CDP. No se reinició el servidor. Los nombres de solicitante
+se eligieron sin dígitos porque la validación del dominio rechaza números; un intento
+previo con `Prueba UI 20` fue rechazado correctamente con `Solicitante inválido.` y se
+repitió con `Prueba UI`.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, Edge 156.0.4314.42.
+
+**Resultados esperados y observados:**
+
+| Paso | Esperado | Observado |
+| --- | --- | --- |
+| 1. Reservar MIC-01 10:00-11:00 | Alta correcta | `Reserva creada con ID 1.`; fila `MIC-01`/`Prueba UI`/`ACTIVA` |
+| 2. Rechazar MIC-01 10:30-11:30 | Rechazo por superposición, sin alta | `Superposición con la reserva activa 1.`; la tabla siguió con 1 fila |
+| 3. Aceptar MIC-01 11:00-12:00 | Alta consecutiva correcta | `Reserva creada con ID 2.`; fila `Consecutiva`/`ACTIVA`; 2 filas |
+| 4. Reservar MIC-02 10:00-11:00 | Alta simultánea en otra unidad | `Reserva creada con ID 3.`; fila `MIC-02`/`Otra unidad`/`ACTIVA`; 3 filas |
+| 5. Cancelar la reserva inicial | Fila cancelada y liberación del intervalo | La fila ID 1 pasó a `CANCELADA` y desapareció su botón `Cancelar` |
+| 6. Reservar de nuevo MIC-01 10:00-11:00 | Éxito tras la liberación | `Reserva creada con ID 4.`; fila `Liberada`/`ACTIVA`; 4 filas |
+
+**Estado final de la tabla:**
+
+| ID | Unidad | Solicitante | Inicio | Fin | Estado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MIC-01 | Prueba UI | 2026-10-27T10:00 | 2026-10-27T11:00 | CANCELADA |
+| 2 | MIC-01 | Consecutiva | 2026-10-27T11:00 | 2026-10-27T12:00 | ACTIVA |
+| 3 | MIC-02 | Otra unidad | 2026-10-27T10:00 | 2026-10-27T11:00 | ACTIVA |
+| 4 | MIC-01 | Liberada | 2026-10-27T10:00 | 2026-10-27T11:00 | ACTIVA |
+
+**Verificación adicional:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest
+66 passed in 11.45s
+```
+
+La consulta directa a SQLite confirmó las cuatro filas y sus estados; los logs de la app
+no mostraron errores. La captura final quedó en
+`C:\Users\espin\AppData\Local\Temp\opencode\paso20-final.png`.
+
+**Limpieza:**
+
+- Se detuvieron la app de prueba y Edge; no quedan procesos escuchando en 3010/8010 ni
+  en 9222. Al cierre tampoco había listeners en 3000/8000.
+- Se conservaron la base temporal y la captura como evidencia del Paso 20.
+
+**Decisiones:**
+
+- No se modificó código de la aplicación; sólo se actualizaron la documentación y el
+  estado de la tarea.
+- La liberación se verificó creando de nuevo la misma reserva, en lugar de usar el
+  formulario de disponibilidad.
+
+**Pasos no ejecutados:**
+
+- Persistencia tras reiniciar `reflex run`: corresponde al Paso 21.
+- La comprobación se hizo con un navegador real, pero los clics y la escritura se
+  automatizaron con CDP; no hubo una sesión manual humana.
+- No se probaron dos sesiones concurrentes; queda fuera del alcance del Paso 20.
+
+**Resultado:** los seis pasos del procedimiento se completaron con los resultados
+esperados, sin errores en los logs, y la suite completa sigue en 66/66.
+
+## Paso 21 - Persistencia manual tras reinicio
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se levantó una instancia aislada de Reflex en los puertos
+3010/8010 con una base temporal nueva en
+`C:\Users\espin\AppData\Local\Temp\opencode\reservas-paso21.db`. Desde la UI se creó
+una reserva activa en MIC-01 (`Activa Persistente`, 2026-10-28T10:00-11:00) y otra en
+MIC-02 (`Cancelada Persistente`, 2026-10-28T12:00-13:00), que se canceló con el botón
+`Cancelar`. Se detuvo el proceso de `reflex run` y su árbol (`taskkill /T /F`), se
+comprobó que no quedaran listeners en 3010/8010 y se volvió a iniciar la app con el
+mismo `RESERVAS_DB`. En una página nueva después del reinicio se compararon las filas
+de la tabla y el contenido directo de SQLite.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, Edge 156.0.4314.42.
+
+**Resultados esperados y observados:**
+
+| Comprobación | Esperado | Observado |
+| --- | --- | --- |
+| Alta de la reserva activa | Éxito con ID asignado | `Reserva creada con ID 1.`; `MIC-01`/`Activa Persistente`/`ACTIVA` |
+| Alta de la reserva cancelable | Éxito con ID asignado | `Reserva creada con ID 2.`; `MIC-02`/`Cancelada Persistente`/`ACTIVA` antes de cancelar |
+| Cancelación desde la UI | La fila conserva ID y datos, y pasa a `CANCELADA` | `Reserva cancelada.`; ID 2 pasó a `CANCELADA` y desapareció su botón `Cancelar` |
+| Reinicio de la app | La app vuelve a cargar sin borrar datos | La app respondió `200` en 3010 después del reinicio |
+| Contenido después del reinicio | Las dos reservas siguen presentes, con el mismo ID, datos y estado | Las dos filas reaparecieron con los valores de la tabla siguiente |
+| Consulta directa a SQLite | Los dos registros coinciden con la UI | Las dos filas coincidieron con la UI |
+
+**Estado observado después del reinicio:**
+
+| ID | Unidad | Solicitante | Inicio | Fin | Estado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MIC-01 | Activa Persistente | 2026-10-28T10:00 | 2026-10-28T11:00 | ACTIVA |
+| 2 | MIC-02 | Cancelada Persistente | 2026-10-28T12:00 | 2026-10-28T13:00 | CANCELADA |
+
+La reserva activa conservó su botón `Cancelar`; la cancelada conservó su estado y sus
+datos, sin volver a `ACTIVA`.
+
+**Verificación adicional:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest
+66 passed in 17.29s
+```
+
+La suite incluye `tests/test_persistencia.py`, que reabre una base temporal con una
+reserva activa y otra cancelada. Los logs del primer y segundo arranque no mostraron
+`Traceback`, `ERROR`, `EBUSY` ni excepciones.
+
+**Evidencia:**
+
+- `docs/agent/verificacion-persistencia.md`: procedimiento y resultados esperados y
+  observados.
+- `C:\Users\espin\AppData\Local\Temp\opencode\paso21-antes.png`: captura antes del
+  reinicio.
+- `C:\Users\espin\AppData\Local\Temp\opencode\paso21-despues.png`: captura después del
+  reinicio.
+- `C:\Users\espin\AppData\Local\Temp\opencode\reservas-paso21.db`: base temporal con
+  los IDs 1 (ACTIVA) y 2 (CANCELADA).
+- `C:\Users\espin\AppData\Local\Temp\opencode\reflex-paso21-1.out.log` y
+  `reflex-paso21-2.out.log`: logs de los dos arranques.
+
+**Limpieza:**
+
+- Se detuvieron la app de prueba y Edge; no quedan listeners en 3010/8010 ni en 9223.
+  Al cierre tampoco había listeners en 3000/8000.
+- Se conservaron la base temporal y las capturas como evidencia del Paso 21.
+
+**Decisiones:**
+
+- No se modificó código de la aplicación; sólo se creó la verificación, se actualizó
+  este registro y se marcó la tarea.
+- La detención fue forzada con `taskkill /T /F`, no con `Ctrl+C`; las transacciones ya
+  estaban confirmadas en SQLite y la reapertura recuperó ambos estados.
+
+**Pasos no ejecutados:**
+
+- La comprobación se hizo con un navegador real, pero los clics y la escritura se
+  automatizaron con CDP; no hubo una sesión manual humana.
+- No se reinició el sistema operativo ni se probaron dos sesiones concurrentes.
+- No se inició el Paso 22.
+
+**Resultado:** la reserva activa y la cancelada, creadas y canceladas desde la UI,
+sobrevivieron a la detención y al reinicio de `reflex run` con el mismo `RESERVAS_DB`,
+con sus datos y estados intactos. La suite completa queda en 66/66.

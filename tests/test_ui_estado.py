@@ -142,6 +142,22 @@ def test_reservar_error_conserva_valores_del_formulario(
     assert st.fin_res == fin
 
 
+def test_handlers_de_campos_actualizan_el_estado():
+    st = estado.State()
+    st.actualizar_unidad("MIC-02")
+    st.actualizar_solicitante("Ana")
+    st.actualizar_inicio_disp("2026-10-23T10:00")
+    st.actualizar_fin_disp("2026-10-23T11:00")
+    st.actualizar_inicio_res("2026-10-23T12:00")
+    st.actualizar_fin_res("2026-10-23T13:00")
+    assert st.unidad_seleccionada == "MIC-02"
+    assert st.solicitante == "Ana"
+    assert st.inicio_disp == "2026-10-23T10:00"
+    assert st.fin_disp == "2026-10-23T11:00"
+    assert st.inicio_res == "2026-10-23T12:00"
+    assert st.fin_res == "2026-10-23T13:00"
+
+
 def _crear_reserva(
     unidad: str, solicitante: str, inicio_hora: str, fin_hora: str, reloj_fijo
 ) -> dict:
@@ -203,27 +219,21 @@ def test_filtros_por_unidad_y_estado(env_db_temporal, reloj_fijo):
     st = estado.State()
     st.on_load()
 
-    st.filtro_unidad = "MIC-01"
-    st.filtro_estado = ""
-    st.aplicar_filtros()
+    st.actualizar_filtro_unidad("MIC-01")
     assert {r["id"] for r in st.reservas} == {
         res_mic01_activa["id"],
         res_mic01_cancelada["id"],
     }
 
-    st.filtro_unidad = ""
-    st.filtro_estado = "CANCELADA"
-    st.aplicar_filtros()
+    st.actualizar_filtro_unidad("")
+    st.actualizar_filtro_estado("CANCELADA")
     assert {r["id"] for r in st.reservas} == {res_mic01_cancelada["id"]}
 
-    st.filtro_unidad = "MIC-01"
-    st.filtro_estado = "ACTIVA"
-    st.aplicar_filtros()
+    st.actualizar_filtro_unidad("MIC-01")
+    st.actualizar_filtro_estado("ACTIVA")
     assert {r["id"] for r in st.reservas} == {res_mic01_activa["id"]}
 
-    st.filtro_unidad = ""
-    st.filtro_estado = ""
-    st.aplicar_filtros()
+    st.limpiar_filtros()
     assert {r["id"] for r in st.reservas} == {
         res_mic01_activa["id"],
         res_mic01_cancelada["id"],
