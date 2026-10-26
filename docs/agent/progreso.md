@@ -1317,3 +1317,96 @@ enlazados, solo resta el Paso 26).
 - `README.md` (estado, verificación, pendientes y §4.2).
 - `specs/reservas-laboratorio/tasks.md`: Paso 25 marcado como completado.
 - `docs/agent/progreso.md`: este registro.
+
+## Comprobación en navegador tras la convergencia (Paso 25)
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Motivo:** verificación solicitada para confirmar que la limpieza de code smells del
+Paso 25 no había cambiado la interfaz.
+
+**Entorno (aislado; no se tocó `data/reservas.db`):**
+
+- Base temporal `.evidencia/reservas-paso25.db` (carpeta ignorada por Git) creada con
+  `python -m reservas init-db`; 5 unidades, 0 reservas al empezar.
+- `reflex run --frontend-port 3010 --backend-port 8010` con `RESERVAS_DB` apuntando a esa
+  base; app compilada y en `App Running` en 3010/8010.
+- Edge 156 headless con CDP en el puerto 9223 y perfil propio en `.evidencia/edge-profile`.
+- Guion `.evidencia/verificar.js` (Node 24 + `ws` de `.web/node_modules`) que rellena los
+  campos, selecciona las unidades y hace clic sobre los botones reales de la página, lee los
+  mensajes del DOM y guarda capturas.
+- Fechas usadas: `2026-11-05` (futuras respecto a la fecha del sistema).
+
+**Resultados esperados y observados (ejecución válida):**
+
+| Paso | Esperado | Observado |
+| --- | --- | --- |
+| Estructura | Etiquetas con `for`, ids de formularios y botones | 9 labels asociados (`disp-unidad` … `filtro-estado`); `#form-disponibilidad`, `#form-reserva`, `#btn-consultar`, `#btn-reservar`, `#btn-limpiar-filtros`; 4 campos `datetime-local` |
+| Consulta MIC-01 10:00–11:00 | `Disponible.` | `Disponible.` |
+| Reservar MIC-01 10:00–11:00 | Éxito con ID 1 | `Reserva creada con ID 1.` |
+| Tras el éxito | Solicitante, inicio y fin limpios; unidad conservada | `""`, `""`, `""`, unidad `MIC-01` |
+| Consulta MIC-01 10:30–11:30 | `No disponible` con conflictos (ID, solicitante, intervalo) | `No disponible: se superpone con la reserva activa 1.`; conflicto `Reserva 1 · Prueba Paso veinticinco · 2026-11-05T10:00 a 2026-11-05T11:00` |
+| Reservar MIC-01 11:00–12:00 | Límite consecutivo aceptado | `Reserva creada con ID 2.` |
+| Reservar MIC-02 10:00–11:00 | Unidad distinta aceptada | `Reserva creada con ID 3.` |
+| Cancelar la reserva 1 | `Reserva cancelada.`, fila `CANCELADA` y sin botón | `Reserva cancelada.`; fila `1 MIC-01 … CANCELADA —`; `#cancelar-1` ya no existe |
+| Orden del listado | Inicio ascendente y luego ID | Filas `1 (10:00)`, `3 (10:00)`, `2 (11:00)` |
+| Consulta MIC-01 10:00–11:00 tras cancelar | `Disponible.` (intervalo liberado) | `Disponible.` |
+| Filtro estado `CANCELADA` | 1 fila | 1 fila |
+| Limpiar filtros | 3 filas | 3 filas |
+
+**Estado final de la base (consulta directa a SQLite):**
+
+| ID | Unidad | Solicitante | Inicio | Fin | Estado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MIC-01 | Prueba Paso veinticinco | 2026-11-05T10:00 | 2026-11-05T11:00 | CANCELADA |
+| 2 | MIC-01 | Turno Consecutivo | 2026-11-05T11:00 | 2026-11-05T12:00 | ACTIVA |
+| 3 | MIC-02 | Unidad Distinta | 2026-11-05T10:00 | 2026-11-05T11:00 | ACTIVA |
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4,
+Edge 156.0.4314.42, Node v24.11.1.
+
+**Verificación adicional:**
+
+```text
+$ grep -aiE "error|traceback|exception|EBUSY" .evidencia/reflex.log
+(sin resultados)
+$ .venv/Scripts/python.exe -m pytest -q
+......................................     [100%]     # 68 pruebas, código 0
+$ .venv/Scripts/ruff.exe check .
+All checks passed!
+$ netstat -ano | grep -E ":3010|:8010|:9223"
+sin listeners (procesos detenidos al cerrar)
+```
+
+**Pasos no ejecutados o descartados:**
+
+- No hubo sesión manual humana: los clics y la escritura se automatizaron con CDP, como en
+  los Pasos 20 y 21.
+- Las dos primeras ejecuciones del guion se **descartaron** por causas del guion, no de la
+  aplicación: el relleno de un campo disparaba el `on_change` con retardo y se envió el
+  formulario con el estado aún incompleto (se observaron `Fecha inválida.` y
+  `Solicitante inválido.`), y un solicitante con dígitos (`Prueba Paso 25`) fue rechazado por
+  la validación del dominio, comportamiento ya aceptado y registrado desde el Paso 20. Se
+  repitieron los pasos con esperas mayores y un solicitante sin dígitos; la ejecución válida
+  es la de la tabla anterior.
+- No se reinició la aplicación (la persistencia tras reinicio ya está verificada en el Paso
+  21) ni se probaron dos sesiones concurrentes (fuera de alcance).
+- No se modificó código de la aplicación en esta verificación.
+
+**Decisiones:**
+
+- Se añadió `.evidencia/` a `.gitignore` para conservar guion, capturas, perfil y base
+  temporal localmente sin versionar binarios ni perfiles de navegador.
+- Se usaron puertos 3010/8010 y 9223 y una base temporal para no interferir con
+  `data/reservas.db` ni con una instancia en 3000/8000.
+- No se corrigió nada de la interfaz: todo lo observado coincide con `spec.md` §12, §14 y con
+  el procedimiento del Paso 20.
+
+**Evidencia:**
+
+- `.evidencia/observaciones.json`, `.evidencia/verificar.js`, `.evidencia/reflex.log` y las
+  capturas `.evidencia/01-estructura.png` … `.evidencia/08-filtros.png` (ignoradas por Git).
+- `.evidencia/reservas-paso25.db` con las tres filas de la tabla anterior.
+- `docs/agent/progreso.md`: este registro.
