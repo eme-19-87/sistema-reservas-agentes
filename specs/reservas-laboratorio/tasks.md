@@ -84,7 +84,7 @@
 - \[x\] **Paso 21 — Persistencia manual tras reinicio**
   - `docs/agent/verificacion-persistencia.md`: reservar y cancelar desde la UI, detener `reflex run`, volver a ejecutarlo y comprobar que activas y canceladas siguen presentes.
   - Registrar resultados esperados y observados.
-- \[ \] **Paso 22 — README: Especificación y Solución**
+- \[x\] **Paso 22 — README: Especificación y Solución**
   - Sección 1: problema, alcance, requisitos verificables, reglas, supuestos (zona horaria, formato, fechas pasadas, límites), criterios de aceptación; enlace a [`spec.md`](http://spec.md).
   - Sección 2: estructura, decisiones, requisitos previos y versiones (Python, Reflex, red solo en la instalación inicial), instalación, carga y reinicio de datos con advertencia de borrado, comandos, ejemplo de entrada y salida, ubicación de los datos, pendientes y limitaciones (incluido que los clics del navegador no se automatizan).
 - \[ \] **Paso 23 — README: Preparación del agente y decisiones**

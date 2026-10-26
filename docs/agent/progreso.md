@@ -977,3 +977,66 @@ reserva activa y otra cancelada. Los logs del primer y segundo arranque no mostr
 **Resultado:** la reserva activa y la cancelada, creadas y canceladas desde la UI,
 sobrevivieron a la detención y al reinicio de `reflex run` con el mismo `RESERVAS_DB`,
 con sus datos y estados intactos. La suite completa queda en 66/66.
+
+## Paso 22 - README: Especificación y Solución
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se reescribió `README.md` para completar la sección 1
+(problema, alcance, reglas, supuestos y límites, requisitos verificables RF-01 a RF-18 y
+criterios de aceptación) y la sección 2 (estructura, decisiones técnicas, requisitos
+previos y versiones, instalación, carga/reinicio/borrado de datos, comandos, ejemplo de
+entrada y salida, ubicación de los datos y pendientes/limitaciones). Se dejaron las
+secciones 3 y 4 como pendientes para los Pasos 23 y 24. Se reemplazaron los enlaces
+relativos inválidos por rutas del repositorio y se documentó explícitamente que los
+clics del navegador no se automatizan.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4. El proyecto
+declara Python >=3.11 en `pyproject.toml`.
+
+**Resultados esperados y observados:**
+
+| Comprobación | Esperado | Observado |
+| --- | --- | --- |
+| Secciones 1 y 2 del README | Incluir todo el contenido del Paso 22 | Contenido completo; secciones 3 y 4 señaladas como pendientes |
+| Enlaces y anclas del README | Todas las rutas y anclas resuelven | 16 enlaces revisados; 0 problemas |
+| `python -m pytest` | Suite verde | `66 passed in 11.33s`; código 0 |
+| `git diff --check` | Sin errores de whitespace | Código 0 |
+| `python -m reservas init-db` con base temporal | Código 0 y base creada | Código 0; alta de prueba con ID 1 |
+| `python -m reservas init-db --reset --yes` | Código 0 y cero reservas | Código 0; `FILAS 0` |
+| `ruff check .` | Sin cambios de código en este paso | 115 hallazgos preexistentes: 88 E501, 16 F401, 7 I001 y 4 E731; código 1 |
+
+La comprobación de enlaces y anclas se hizo con un script local sobre `README.md`; no se
+encontraron rutas ni anclas inexistentes. La base temporal
+`C:\Users\espin\AppData\Local\Temp\opencode\readme-paso22.db` se eliminó después de la
+prueba de inicialización y reset.
+
+**Decisiones:**
+
+- Se mantuvo la estructura del README en cuatro secciones, pero solo se completaron las
+  secciones 1 y 2 correspondientes a este paso.
+- Los enlaces a la especificación se dirigieron a `spec.md` y a sus secciones 17 y 20,
+  en lugar de usar enlaces externos o rutas relativas inválidas.
+- Se documentaron las versiones realmente observadas y se aclaró que la red solo es
+  necesaria para la instalación inicial.
+- No se modificaron `spec.md`, `plan.md` ni el código de la aplicación.
+
+**Pasos no ejecutados:**
+
+- No se inició el Paso 23 ni se completaron las secciones 3 o 4.
+- No se repitió el flujo de navegador; se enlazaron los resultados de los Pasos 20 y 21.
+- No se recreó el entorno desde cero ni se corrigieron los hallazgos de `ruff`.
+- No se inició ningún servidor de prueba para este paso.
+
+**Evidencia:**
+
+- `README.md`: secciones 1 y 2 completas.
+- `docs/agent/progreso.md`: este registro.
+- `specs/reservas-laboratorio/tasks.md`: Paso 22 marcado como completado.
+
+**Resultado:** el README contiene la especificación breve y la solución con los datos
+solicitados, los enlaces resuelven, los comandos de datos se validaron con una base
+temporal y la suite completa sigue en 66/66. El Paso 22 queda completado sin modificar
+código de la aplicación.
