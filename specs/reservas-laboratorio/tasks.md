@@ -65,7 +65,7 @@
 - \[x\] **Paso 16 —** `State`**: reservar**
   - Handler que delega y recarga la lista; tras éxito limpia solicitante, inicio y fin (conserva la unidad) y tras un error conserva los valores ([`spec.md`](http://spec.md)).
   - Pruebas: reserva válida actualiza la lista; solapamiento deja `mensaje_error` y la lista intacta; 11:00–12:00 aceptada; MIC-02 simultánea aceptada; solicitante vacío rechazado; formulario limpio tras éxito y conservado tras error.
-- \[ \] **Paso 17 —** `State`**: cancelar y filtros**
+- \[x\] **Paso 17 —** `State`**: cancelar y filtros**
   - Handler de cancelación y filtros por unidad y estado.
   - Pruebas: la cancelada sigue en la lista como CANCELADA con sus datos; el horario queda libre; doble cancelación muestra error; filtros devuelven los subconjuntos esperados.
 - \[ \] **Paso 18 — Componentes y página**

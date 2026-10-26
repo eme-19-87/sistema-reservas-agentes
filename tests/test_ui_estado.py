@@ -140,3 +140,92 @@ def test_reservar_error_conserva_valores_del_formulario(
     assert st.solicitante == "Ana"
     assert st.inicio_res == inicio
     assert st.fin_res == fin
+
+
+def _crear_reserva(
+    unidad: str, solicitante: str, inicio_hora: str, fin_hora: str, reloj_fijo
+) -> dict:
+    inicio, fin = _rango(inicio_hora, fin_hora)
+    return servicio.crear_reserva(
+        unidad, solicitante, inicio, fin, reloj=lambda: reloj_fijo
+    )
+
+
+def test_cancelar_conserva_fila_cancelada_con_datos(env_db_temporal, reloj_fijo):
+    inicializar_bd()
+    creada = _crear_reserva("MIC-01", "Ana", "10:00", "11:00", reloj_fijo)
+    st = estado.State()
+    st.on_load()
+    st.cancelar(creada["id"])
+    assert st.mensaje_error == ""
+    fila = next(r for r in st.reservas if r["id"] == creada["id"])
+    assert fila["estado"] == "CANCELADA"
+    assert fila["unidad_id"] == "MIC-01"
+    assert fila["solicitante"] == "Ana"
+    assert fila["inicio"] == creada["inicio"]
+    assert fila["fin"] == creada["fin"]
+
+
+def test_cancelar_libera_horario(env_db_temporal, reloj_fijo):
+    inicializar_bd()
+    creada = _crear_reserva("MIC-01", "Ana", "10:00", "11:00", reloj_fijo)
+    st = estado.State()
+    st.on_load()
+    st.cancelar(creada["id"])
+    nueva = _crear_reserva("MIC-01", "Luis", "10:00", "11:00", reloj_fijo)
+    assert nueva["id"] != creada["id"]
+    assert nueva["estado"] == "ACTIVA"
+
+
+def test_doble_cancelacion_muestra_error(env_db_temporal, reloj_fijo):
+    inicializar_bd()
+    creada = _crear_reserva("MIC-01", "Ana", "10:00", "11:00", reloj_fijo)
+    st = estado.State()
+    st.on_load()
+    st.cancelar(creada["id"])
+    antes = len(st.reservas)
+    st.cancelar(creada["id"])
+    assert "ya cancelada" in st.mensaje_error.lower()
+    assert len(st.reservas) == antes
+    fila = next(r for r in st.reservas if r["id"] == creada["id"])
+    assert fila["estado"] == "CANCELADA"
+
+
+def test_filtros_por_unidad_y_estado(env_db_temporal, reloj_fijo):
+    inicializar_bd()
+    res_mic01_activa = _crear_reserva("MIC-01", "Ana", "10:00", "11:00", reloj_fijo)
+    res_mic01_cancelada = _crear_reserva(
+        "MIC-01", "Luis", "11:00", "12:00", reloj_fijo
+    )
+    res_mic02_activa = _crear_reserva("MIC-02", "Ana", "10:00", "11:00", reloj_fijo)
+    servicio.cancelar_reserva(res_mic01_cancelada["id"], reloj=lambda: reloj_fijo)
+
+    st = estado.State()
+    st.on_load()
+
+    st.filtro_unidad = "MIC-01"
+    st.filtro_estado = ""
+    st.aplicar_filtros()
+    assert {r["id"] for r in st.reservas} == {
+        res_mic01_activa["id"],
+        res_mic01_cancelada["id"],
+    }
+
+    st.filtro_unidad = ""
+    st.filtro_estado = "CANCELADA"
+    st.aplicar_filtros()
+    assert {r["id"] for r in st.reservas} == {res_mic01_cancelada["id"]}
+
+    st.filtro_unidad = "MIC-01"
+    st.filtro_estado = "ACTIVA"
+    st.aplicar_filtros()
+    assert {r["id"] for r in st.reservas} == {res_mic01_activa["id"]}
+
+    st.filtro_unidad = ""
+    st.filtro_estado = ""
+    st.aplicar_filtros()
+    assert {r["id"] for r in st.reservas} == {
+        res_mic01_activa["id"],
+        res_mic01_cancelada["id"],
+        res_mic02_activa["id"],
+    }

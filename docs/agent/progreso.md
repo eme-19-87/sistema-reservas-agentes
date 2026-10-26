@@ -508,3 +508,27 @@ All checks passed!
 ```
 
 Resultado: 8/8 pruebas del handler y 58/58 de la suite completa; ruff sin hallazgos en los archivos modificados.
+
+## Paso 17 - State: cancelar y filtros
+
+Estado: completado.
+
+Fecha: 2026-10-26
+
+Trabajo realizado: Se agregó el handler `cancelar(reserva_id)` al `State`, que delega en `presentacion.cancelar`, recarga la lista desde SQLite aplicando los filtros activos y muestra un mensaje de éxito; en error conserva la lista y muestra `mensaje_error`. Se agregó `aplicar_filtros`, que recarga la lista según `filtro_unidad` y `filtro_estado` (valor vacío significa sin filtro). `_recargar_reservas` ahora aplica esos filtros, por lo que `on_load`, reservar y cancelar mantienen la vista filtrada de forma consistente. Se extrajeron `_aplicar_exito_operacion`, `_aplicar_error_operacion` y `_aplicar_resultado_operacion` para que reservar y cancelar compartan el manejo de resultados sin duplicación.
+
+Pruebas agregadas en `tests/test_ui_estado.py`: la reserva cancelada permanece en la lista como CANCELADA conservando ID, unidad, solicitante, inicio y fin; el horario cancelado queda libre para una nueva reserva; la doble cancelación muestra error y no altera la lista; los filtros por unidad, por estado y combinados devuelven los subconjuntos esperados, y sin filtros se listan todas.
+
+Verificación ejecutada:
+```text
+.venv\Scripts\python.exe -m pytest tests/test_ui_estado.py
+12 passed in 3.91s
+
+.venv\Scripts\python.exe -m pytest
+62 passed in 13.71s
+
+.venv\Scripts\python.exe -m ruff check reservas_ui\estado.py tests\test_ui_estado.py
+All checks passed!
+```
+
+Resultado: 12/12 pruebas de handlers y 62/62 de la suite completa; ruff sin hallazgos en los archivos modificados.

@@ -139,25 +139,42 @@ class State(rx.State):
 
     def _recargar_reservas(self) -> None:
         try:
-            self.reservas = presentacion.listar_filas(servicio)
+            self.reservas = presentacion.listar_filas(
+                servicio,
+                unidad_id=getattr(self, "filtro_unidad", "") or None,
+                estado=getattr(self, "filtro_estado", "") or None,
+            )
         except Exception:
             self.reservas = []
 
-    def _aplicar_exito_reserva(self, res: dict[str, Any]) -> None:
+    def _aplicar_exito_operacion(
+        self, res: dict[str, Any], mensaje_defecto: str
+    ) -> None:
         self._asignar_var("mensaje_error", "")
-        self._asignar_var("mensaje_exito", res.get("mensaje", "Reserva creada."))
-        self._limpiar_campos_reserva()
+        self._asignar_var("mensaje_exito", res.get("mensaje", mensaje_defecto))
         self._recargar_reservas()
 
-    def _aplicar_error_reserva(self, mensaje: str) -> None:
+    def _aplicar_error_operacion(self, mensaje: str) -> None:
         self._asignar_var("mensaje_exito", "")
         self._asignar_var("mensaje_error", mensaje)
 
+    def _aplicar_resultado_operacion(
+        self,
+        res: dict[str, Any],
+        mensaje_exito_defecto: str,
+        mensaje_error_defecto: str,
+    ) -> bool:
+        if not res.get("ok"):
+            self._aplicar_error_operacion(res.get("mensaje", mensaje_error_defecto))
+            return False
+        self._aplicar_exito_operacion(res, mensaje_exito_defecto)
+        return True
+
     def _aplicar_resultado_reserva(self, res: dict[str, Any]) -> None:
-        if res.get("ok"):
-            self._aplicar_exito_reserva(res)
-            return
-        self._aplicar_error_reserva(res.get("mensaje", "No se pudo crear la reserva."))
+        if self._aplicar_resultado_operacion(
+            res, "Reserva creada.", "No se pudo crear la reserva."
+        ):
+            self._limpiar_campos_reserva()
 
     def reservar(self):
         self._limpiar_mensajes()
@@ -171,6 +188,24 @@ class State(rx.State):
                 getattr(self, "fin_res", ""),
             )
         except Exception as exc:
-            self._aplicar_error_reserva(self._mensaje_de_error(exc))
+            self._aplicar_error_operacion(self._mensaje_de_error(exc))
             return
         self._aplicar_resultado_reserva(res)
+
+    def _aplicar_resultado_cancelacion(self, res: dict[str, Any]) -> None:
+        self._aplicar_resultado_operacion(
+            res, "Reserva cancelada.", "No se pudo cancelar la reserva."
+        )
+
+    def cancelar(self, reserva_id: int):
+        self._limpiar_mensajes()
+        try:
+            res = presentacion.cancelar(servicio, reserva_id)
+        except Exception as exc:
+            self._aplicar_error_operacion(self._mensaje_de_error(exc))
+            return
+        self._aplicar_resultado_cancelacion(res)
+
+    def aplicar_filtros(self):
+        self._limpiar_mensajes()
+        self._recargar_reservas()
