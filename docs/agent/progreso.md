@@ -649,3 +649,103 @@ una sesión que ya lo mostró es cerrar las pestañas antiguas de
 - No se volvió a ejecutar `pytest` porque no hubo cambios de código; la
   comprobación manual de clics sigue pendiente para el Paso 20.
 - El árbol de trabajo quedó limpio y la rama permaneció en `4cfc567`.
+
+## Corrección — EBUSY al reservar (2026-10-26)
+
+**Estado:** corregido, verificado y versionado en este commit.
+
+**Síntoma:** al reservar, Reflex intentaba reconciliar los paquetes del frontend,
+mostraba `Removing unused frontend packages` y fallaba con `EBUSY`. En la ejecución
+completa también aparecía `[ERROR] Unexpected exit from worker-1`.
+
+**Causa raíz 1 — dependencias de desarrollo mal clasificadas:**
+
+- Reflex 0.10 ejecuta `npm add -d` para las dependencias de desarrollo.
+- En npm 11, `-d` significa `--loglevel info`; el alias de `--save-dev` es `-D`.
+- Por eso las 10 dependencias de desarrollo quedaron guardadas en `dependencies`.
+- En cada arranque, Reflex intentaba sacarlas de `dependencies` y volver a añadirlas
+  mientras Vite mantenía abiertos archivos de `node_modules`, produciendo `EBUSY`.
+
+**Causa raíz 2 — SQLite dentro de las rutas de hot reload:**
+
+- `data/` estaba dentro de las rutas de recarga del backend.
+- Cada escritura de SQLite crea/elimina `reservas.db-journal`; el watcher lo detectaba
+  y reiniciaba el backend (`Changes detected, reloading workers..`).
+- En la ejecución completa ese reinicio terminaba con
+  `[ERROR] Unexpected exit from worker-1`.
+
+**Cambios realizados:**
+
+- `reflex.lock/package.json`: se separaron 14 dependencias de ejecución y 10 de
+  desarrollo en `dependencies` y `devDependencies`. Se conservaron las versiones de
+  `lucide-react`, `react-debounce-input`, `react-error-boundary` y `sonner`.
+- `reflex.lock/package-lock.json`: se regeneró con las secciones correctas.
+- `.web/package.json` y `.web/package-lock.json`: se sincronizaron desde
+  `reflex.lock/`; `npm install --legacy-peer-deps` añadió los 5 paquetes que faltaban.
+- `rxconfig.py`: se añadió
+  `os.environ.setdefault("REFLEX_HOT_RELOAD_EXCLUDE_PATHS", "data")` para que las
+  escrituras de SQLite no reinicien el backend. Se usa la ruta relativa `data` porque
+  la variable de entorno separa elementos con `:` y una ruta absoluta de Windows se
+  partiría por la letra de unidad.
+
+**Verificación ejecutada:**
+
+```text
+$ .\.venv\Scripts\reflex.exe compile
+Success: App compiled successfully in 19.546 seconds.
+
+$ .\.venv\Scripts\reflex.exe run --loglevel debug
+Reload paths: [... sin la carpeta data ...]
+Removing unused frontend packages: no aparece
+EBUSY: no aparece
+Changes detected: no aparece al escribir en la base
+Unexpected exit from worker-1: no aparece
+App running at: http://localhost:3000/
+Backend running at: http://0.0.0.0:8000
+```
+
+**Prueba de interfaz real:**
+
+- Se cargó la app con Edge headless y CDP.
+- Se completaron `Prueba UI`, `MIC-01`, `2026-10-27T15:00` y `2026-10-27T16:00`.
+- La interfaz mostró `Reserva creada con ID 7.` y la fila apareció en la tabla.
+- El backend siguió escuchando en 3000/8000, sin `EBUSY`, sin recarga y sin caída.
+- La escritura directa en SQLite desde el servicio también dejó el backend estable.
+
+**Pruebas automatizadas:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest -q
+............................................................... [100%]
+# código de salida 0
+
+$ .\.venv\Scripts\ruff.exe check rxconfig.py
+All checks passed!
+
+$ .\.venv\Scripts\ruff.exe format --check rxconfig.py
+1 file already formatted
+```
+
+`ruff check .` sigue reportando 115 hallazgos preexistentes en el repositorio; no se
+corrigieron porque están fuera del alcance de esta corrección.
+
+**Limpieza:**
+
+- Se cancelaron las reservas de prueba 4, 5 y 6, y se eliminaron las filas de prueba
+  4–7 junto con el contador de `sqlite_sequence`.
+- La base quedó con los IDs 1 y 2 cancelados y el ID 3 activo (`OSC-01`, `Kike`,
+  `2026-10-26T22:00`–`23:00`).
+- Se detuvo el servidor de prueba; los puertos 3000 y 8000 quedaron libres.
+
+**Decisiones:**
+
+- No se modificó `site-packages` de Reflex; la corrección se hace en los metadatos del
+  proyecto y en `rxconfig.py`, por lo que es reproducible.
+- Se descartó el uso de una ruta absoluta en `REFLEX_HOT_RELOAD_EXCLUDE_PATHS` por el
+  separador `:` de la variable en Windows.
+- No se repitió la llamada a `install_frontend_packages` con un conjunto vacío, porque
+  eliminaba los paquetes personalizados del frontend.
+
+**Pendiente:**
+
+- Continuar con los pasos 19–20 de `specs/reservas-laboratorio/tasks.md`.
