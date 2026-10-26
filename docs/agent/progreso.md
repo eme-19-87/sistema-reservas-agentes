@@ -475,3 +475,6 @@ Refactorización: consultar_disponibilidad dividida en _limpiar_mensajes_disp, _
 
 
 Refactorización adicional: _obtener_unidad_consulta y _aplicar_resultado_disp divididas en funciones auxiliares para eliminar Complex Method y Bumpy Road Ahead.
+
+
+Intentando comprobar que github action contempla el smeel code código duplicado
