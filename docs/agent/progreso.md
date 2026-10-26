@@ -778,3 +778,44 @@ corrigieron porque están fuera del alcance de esta corrección.
 **Pendiente:**
 
 - Continuar con los pasos 19–20 de `specs/reservas-laboratorio/tasks.md`.
+
+## Paso 19 - Prueba de humo de la app
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se creó `tests/test_ui_humo.py` con tres pruebas: importación de
+`reservas_ui.reservas_ui` y tipo `rx.App`; registro de la ruta raíz, normalizada por
+Reflex 0.10 a `index`, en `_page_routes` y `_unevaluated_pages`; y declaración en
+`State` de las 14 vars de formulario y mensajes, más la calculada `unidades_ids`. No se
+levantó servidor ni navegador y no se parchearon vars de clase.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4.
+
+**Verificación ejecutada:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest tests\test_ui_humo.py -q
+3 passed in 1.11s
+
+$ .\.venv\Scripts\python.exe -m pytest -q
+66 passed in 10.29s
+
+$ .\.venv\Scripts\ruff.exe check tests\test_ui_humo.py
+All checks passed!
+
+$ .\.venv\Scripts\ruff.exe format --check tests\test_ui_humo.py
+1 file already formatted
+```
+
+`ruff check .` devuelve código 1 y 115 hallazgos preexistentes (88 E501, 16 F401,
+7 I001 y 4 E731), ninguno en `tests/test_ui_humo.py`; no se corrigieron porque están
+fuera del alcance del Paso 19.
+
+**Resultado:** las tres pruebas nuevas pasan; la suite completa queda en 66/66; el
+archivo nuevo pasa `ruff check` y `ruff format --check`. El fallo de `ruff check .` es
+el mismo conjunto preexistente documentado antes del Paso 19.
+
+**Pasos no ejecutados:** la comprobación manual en navegador corresponde al Paso 20 y
+no se inició.

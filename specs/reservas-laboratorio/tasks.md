@@ -72,7 +72,7 @@
   - [`componentes.py`](http://componentes.py) y `reservas_ui.py`: formulario de disponibilidad, formulario de reserva, tabla de reservas con botón «Cancelar» solo en activas, zona de mensajes.
   - Labels asociados a campos, navegación por teclado, estados de foco básicos.
   - Sin lógica de negocio en componentes.
-- \[ \] **Paso 19 — Prueba de humo de la app**
+- \[x\] **Paso 19 — Prueba de humo de la app**
   - `test_ui_humo.py`: `reservas_ui` se importa, la página `/` está registrada, el `State` declara todas sus vars.
   - Ejecutar la suite completa (`pytest -q`) y `ruff check .`.
 - \[ \] **Paso 20 — Comprobación manual en navegador**
