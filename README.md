@@ -9,10 +9,9 @@ El proyecto se desarrolla con **Spec-Driven Development (SDD)** y un agente de
 programación. La especificación es la fuente normativa; el plan técnico y el registro
 de progreso se mantienen en el repositorio.
 
-> **Estado:** aplicación implementada y verificada hasta el Paso 21. El README tiene
-> completas las secciones 1–3 y las decisiones de la sección 4 (Pasos 22–23); los tres
-> episodios de delegación se completan en el Paso 24, y la convergencia final y la
-> entrega en los Pasos 25 y 26.
+> **Estado:** aplicación implementada y verificada hasta la convergencia final
+> (Paso 25). El README tiene completas las cuatro secciones, incluidos los tres
+> episodios de delegación del Paso 24; solo queda la entrega (Paso 26).
 
 **Documentos de referencia:** [especificación](specs/reservas-laboratorio/spec.md),
 [plan técnico](specs/reservas-laboratorio/plan.md),
@@ -100,7 +99,7 @@ La tabla completa de requisitos está en
 [`spec.md`](specs/reservas-laboratorio/spec.md#17-requisitos-verificables); el detalle
 de los criterios de aceptación finales está en
 [`spec.md`](specs/reservas-laboratorio/spec.md#20-criterios-de-aceptación-finales). El
-estado actual es **66 pruebas automatizadas aprobadas**; el flujo completo de navegador
+estado actual es **68 pruebas automatizadas aprobadas**; el flujo completo de navegador
 y la persistencia se verificaron por separado.
 
 | ID | Requisito | Evidencia principal |
@@ -397,21 +396,21 @@ queda libre para una nueva reserva.
 
 ### Estado de verificación
 
-- Suite automatizada: **66 pruebas aprobadas** con `python -m pytest`.
+- Suite automatizada: **68 pruebas aprobadas** con `python -m pytest`.
 - Flujo de navegador: verificado con resultados esperados y observados en
   `docs/agent/progreso.md` (Paso 20).
 - Persistencia: reserva activa y cancelada recuperadas después de detener y reiniciar
   `reflex run`; evidencia en `docs/agent/verificacion-persistencia.md` (Paso 21).
-- `ruff check .` conserva hallazgos preexistentes de estilo; no se corrigieron en las
-  tareas de documentación. Se revisarán en la convergencia final (Paso 25).
+- `ruff check .` y `ruff format --check .` **sin hallazgos** desde la convergencia final
+  (Paso 25); los hallazgos preexistentes de estilo se corrigieron sin cambiar el
+  comportamiento y la suite siguió en verde.
 
 ### Pendientes y limitaciones
 
-**Pendientes de documentación y entrega:**
+**Pendientes de entrega:**
 
-- registrar los tres episodios reales de delegación (Paso 24);
-- ejecutar la convergencia final, revisar `spec.md` contra la implementación, ejecutar
-  las comprobaciones desde un entorno limpio y preparar la entrega (Pasos 25 y 26).
+- ejecutar la entrega del challenge (Paso 26): verificar el repositorio, identificar rama
+  y commit y enviar el enlace.
 
 **Fuera del alcance o limitaciones conocidas:**
 
@@ -527,8 +526,8 @@ base de datos, no se hizo `git push` y no se ejecutaron comandos destructivos.
 | Skill `reflex-rules` | Se conserva como documento de reglas de la UI; no se asume carga automática por el arnés. | [`.claude/skills/reflex-rules/SKILL.md`](.claude/skills/reflex-rules/SKILL.md) y [`preparacion-agente.md`](docs/agent/preparacion-agente.md). |
 | Revisión humana | Se revisan `git diff`, pruebas, coincidencia con `spec.md` y, en la UI, la comprobación manual del navegador. | [`progreso.md`](docs/agent/progreso.md) (Pasos 20 y 21) y [`CLAUDE.md`](CLAUDE.md). |
 
-No se registran correcciones que no hayan ocurrido. Los episodios de delegación se
-completan en el Paso 24; esta sección no los sustituye.
+No se registran correcciones que no hayan ocurrido. Los tres episodios obligatorios
+están registrados en la sección 4.2; esta sección no los sustituye.
 
 ### 3.6 Retención del progreso y limitaciones
 
@@ -617,10 +616,18 @@ runtime de Reflex.
 
 ### 4.2 Delegación
 
-Los tres episodios reales de delegación se completan en el Paso 24. La plantilla, el
-formato y las reglas para no inventar resultados están en
-[`docs/agent/delegacion.md`](docs/agent/delegacion.md). Hasta entonces, los episodios
-obligatorios permanecen pendientes y no se presentan como completados.
+Los tres episodios obligatorios están registrados con el formato de `plan.md` §12 en
+[`docs/agent/delegacion.md`](docs/agent/delegacion.md), cada uno con objetivo,
+instrucción, resultado, decisión humana y evidencia verificable:
+
+| Episodio | Alcance | Evidencia principal |
+| --- | --- | --- |
+| 1 | Regla de solapamiento con intervalos semiabiertos y casos de borde (Paso 6) | [`tests/test_solapamiento.py`](tests/test_solapamiento.py), commits `f8eb24c` y `48d459a` |
+| 2 | Persistencia SQLite y verificación tras reinicio (Pasos 7, 9 y 21) | [`tests/test_persistencia.py`](tests/test_persistencia.py), [`verificacion-persistencia.md`](docs/agent/verificacion-persistencia.md), commits `e25bbd6`, `ac6894b` y `5c79089` |
+| 3 | Interfaz Reflex con `State` delgado (Pasos 13 a 20) | [`tests/test_ui_presentacion.py`](tests/test_ui_presentacion.py), [`tests/test_ui_estado.py`](tests/test_ui_estado.py), commits `7eee5ad` a `e576d7f` y corrección `05808ed` |
+
+Las reglas para no inventar resultados y los episodios auxiliares (Pasos 1 y 2) están en
+el mismo archivo.
 
 ## Comenzar con Claude Code
 

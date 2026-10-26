@@ -1198,3 +1198,122 @@ episodios existen y fueron comprobados.
 - `docs/agent/delegacion.md`: episodios 1, 2 y 3 completados con sus enlaces.
 - `specs/reservas-laboratorio/tasks.md`: Paso 24 marcado como completado.
 - `docs/agent/progreso.md`: este registro.
+
+## Paso 25 — Convergencia final del SDD
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:**
+
+1. **Comparación `spec.md`/`plan.md` contra la implementación.** Se recorrieron `spec.md`
+   §5–§16, §17 (RF-01 a RF-18) y §20, y `plan.md` §6–§11. Cada RF tiene su prueba o su
+   verificación manual. Se encontraron **dos faltantes** y **una inconsistencia
+   documental**, corregidos en este paso:
+   - **Faltante 1 (`spec.md` §14):** «un error inesperado se registra en el log y se
+     muestra un mensaje genérico».
+     `reservas_ui/presentacion.py::mensaje_error` devolvía `str(exc)` sin registrar nada.
+     Ahora usa `logging.getLogger(__name__)` y devuelve la constante
+     `MENSAJE_ERROR_INESPERADO`. Los ocho mensajes de dominio no cambian.
+   - **Faltante 2 (`spec.md` §12):** el listado «ordenado por inicio ascendente y luego
+     por ID» estaba implementado en `servicio.listar_reservas` (`ORDER BY inicio ASC,
+     id ASC`) pero no tenía prueba; se añadió
+     `test_listado_ordenado_por_inicio_y_luego_por_id`.
+   - **Inconsistencia documental:** el `README.md` seguía diciendo que los episodios de
+     delegación y la convergencia final estaban pendientes. Se actualizaron el bloque de
+     estado, el apartado «Estado de verificación», «Pendientes», §3.5 y §4.2 (nueva tabla
+     con los tres episodios y su evidencia), y el recuento de pruebas (66 → 68).
+2. **Limpieza de los hallazgos del linter (115 al inicio del paso).** Sin cambiar
+   comportamiento: `ruff check --fix .` (25 automáticos: F401 importos sin usar e I001
+   bloques sin ordenar), `ruff format .` (21 archivos reflow) y corrección manual de 13
+   E501 (SQL troceado, firmas y docstrings partidos) y 4 E731 (`reloj = lambda: ...` →
+   `def reloj()`). Además se eliminó una asignación muerta
+   (`servicio.inicializar_bd = lambda: None`) en `tests/test_creacion.py`.
+3. **Comprobación de secretos, datos reales y transcripciones.**
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .venv/Scripts/python.exe --version
+Python 3.13.11
+$ .venv/Scripts/python.exe -m pytest --version
+pytest 8.3.4
+$ .venv/Scripts/ruff.exe --version
+ruff 0.8.4
+$ .venv/Scripts/python.exe -m pip show reflex | head -2
+Name: reflex
+Version: 0.10.0
+
+$ .venv/Scripts/python.exe -m pytest -q
+......................................     [100%]     # 68 pruebas
+PYTEST_EXIT=0
+
+$ .venv/Scripts/ruff.exe check .
+All checks passed!
+RUFF_EXIT=0
+
+$ .venv/Scripts/ruff.exe format --check .
+29 files already formatted
+FMT_EXIT=0
+
+$ git diff --check
+check=0
+
+$ grep -rn "import reflex" src/        # frontera de capas
+(sin resultados, código 1)
+```
+
+Búsqueda de secretos y datos reales (patrones `api_key|secret|password|bearer|ghp_|sk-|AKIA|BEGIN ... PRIVATE KEY` sobre `*.py|*.md|*.json|*.toml|*.txt|*.yml`, excluyendo `.venv`, `.web`, `node_modules`, `reflex.lock` y `.states`):
+
+```text
+# Solo coincidencias con las reglas de la propia política (CLAUDE.md, spec.md,
+# README.md, tasks.md y docs/agent): «no incluir secretos ni credenciales».
+# Ningún token, clave, credencial ni archivo .env/.pem/.key versionado:
+$ git ls-files | grep -iE "\.env|\.db$|\.pem|\.key$"
+(sin resultados, código 1)
+
+# Único dato personal en el repositorio:
+specs/reservas-laboratorio/tasks.md:102: dgaifirst@gmail.com
+# Es la dirección de entrega que fija el propio challenge (Paso 26); no es un secreto
+# ni un dato de estudiantes. Se conserva.
+```
+
+Solicitantes: todos ficticios (`Ana`, `Beto`, `Carla`, `Kike`, `Luis`, `Marta`,
+`Prueba UI`, etc.) en pruebas y datos. `docs/agent/` contiene extractos e instrucciones,
+**no** transcripciones completas de conversaciones.
+
+**Resultado:** 68/68 pruebas (código 0), `ruff check .` y `ruff format --check .` sin
+hallazgos, `git diff --check` limpio, frontera `src/` ↔ `reflex` intacta y repositorio sin
+secretos ni datos reales. El README refleja el estado real (4 secciones completas, episodios
+enlazados, solo resta el Paso 26).
+
+**Pasos no ejecutados:**
+
+- No se modificaron `spec.md` ni `plan.md`: la comparación no reveló contradicciones con la
+  implementación, por lo que no hizo falta un commit de cambio de especificación.
+- No se ejecutó `reflex run` ni ninguna comprobación visual en navegador; el ajuste de
+  `presentacion.py` está cubierto por pruebas sin servidor. Los estados de foco siguen
+  apoyándose en los estilos por defecto de los componentes de Reflex, como en el Paso 18.
+- No se usó red, no se reinició `data/reservas.db`, no se hizo `git push` y no se
+  inició el Paso 26.
+
+**Decisiones:**
+
+- Se corrigieron los faltantes dentro del propio Paso 25 en lugar de abrir una nueva
+  tarea, porque `tasks.md` ordena «corregir faltantes e inconsistencias».
+- Se descartó reescribir `spec.md`/`plan.md`: la divergencia estaba en la implementación y
+  en el README, no en la especificación.
+- Las entradas anteriores de este archivo conservan sus recuentos históricos (58, 63, 66);
+  solo se actualizan los estados vigentes del README.
+- Los cambios de código y de documentación van en commits separados para que la evolución
+  sea recuperable.
+
+**Evidencia:**
+
+- `reservas_ui/presentacion.py` (log + mensaje genérico),
+  `tests/test_ui_presentacion.py::test_error_inesperado_muestra_mensaje_generico_y_se_registra`,
+  `tests/test_creacion.py::test_listado_ordenado_por_inicio_y_luego_por_id`.
+- `README.md` (estado, verificación, pendientes y §4.2).
+- `specs/reservas-laboratorio/tasks.md`: Paso 25 marcado como completado.
+- `docs/agent/progreso.md`: este registro.

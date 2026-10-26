@@ -93,7 +93,7 @@
 - \[x\] **Paso 24 — Tres episodios de delegación**
   - Registrar en `docs/agent/delegacion.md` tres episodios **reales** (objetivo y requisito → contexto y extracto de instrucción → resultado del agente → decisión humana con motivo → enlace a commit, archivo o prueba).
   - Registrar correcciones solo si ocurrieron.
-- \[ \] **Paso 25 — Convergencia final del SDD**
+- \[x\] **Paso 25 — Convergencia final del SDD**
   - Releer [`spec.md`](http://spec.md) y [`plan.md`](http://plan.md); comparar con la implementación; corregir faltantes e inconsistencias (cambios de especificación en commits propios con motivo).
   - Ejecutar `pytest -q` y `ruff check .` desde un entorno limpio y registrar comandos, versiones y resultados.
   - Confirmar que no hay secretos, datos reales ni transcripciones completas en el repositorio.
