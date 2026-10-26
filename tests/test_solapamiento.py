@@ -4,9 +4,11 @@ from datetime import datetime
 
 import pytest
 
-from reservas import dominio
-from reservas.dominio import Superposicion, validar_solicitud_intervalo, hay_solapamiento
-
+from reservas.dominio import (
+    Superposicion,
+    hay_solapamiento,
+    validar_solicitud_intervalo,
+)
 
 AHORA = datetime(2026, 10, 22, 10, 0)
 
@@ -31,38 +33,100 @@ def test_hay_solapamiento_semiabierto():
 
 def test_solapamiento_1030_1130_con_1000_1100():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "ACTIVA",
+        }
     ]
     with pytest.raises(Superposicion):
-        validar_solicitud_intervalo("MIC-01", "2026-10-22T10:30", "2026-10-22T11:30", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+        validar_solicitud_intervalo(
+            "MIC-01",
+            "2026-10-22T10:30",
+            "2026-10-22T11:30",
+            "Ana",
+            ahora=AHORA,
+            inventario=inventario_test(),
+            reservas_activas=reservas_activas,
+        )
 
 
 def test_solapamiento_contenido_total():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "ACTIVA",
+        }
     ]
     with pytest.raises(Superposicion):
-        validar_solicitud_intervalo("MIC-01", "2026-10-22T10:15", "2026-10-22T10:45", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+        validar_solicitud_intervalo(
+            "MIC-01",
+            "2026-10-22T10:15",
+            "2026-10-22T10:45",
+            "Ana",
+            ahora=AHORA,
+            inventario=inventario_test(),
+            reservas_activas=reservas_activas,
+        )
 
 
 def test_solapamiento_intervalo_identico():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "ACTIVA",
+        }
     ]
     with pytest.raises(Superposicion):
-        validar_solicitud_intervalo("MIC-01", "2026-10-22T10:00", "2026-10-22T11:00", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+        validar_solicitud_intervalo(
+            "MIC-01",
+            "2026-10-22T10:00",
+            "2026-10-22T11:00",
+            "Ana",
+            ahora=AHORA,
+            inventario=inventario_test(),
+            reservas_activas=reservas_activas,
+        )
 
 
 def test_limite_consecutivo_1100_1200_permitido():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "ACTIVA",
+        }
     ]
-    validar_solicitud_intervalo("MIC-01", "2026-10-22T11:00", "2026-10-22T12:00", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+    validar_solicitud_intervalo(
+        "MIC-01",
+        "2026-10-22T11:00",
+        "2026-10-22T12:00",
+        "Ana",
+        ahora=AHORA,
+        inventario=inventario_test(),
+        reservas_activas=reservas_activas,
+    )
 
 
 def test_limite_consecutivo_0900_1000_permitido():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "ACTIVA",
+        }
     ]
     validar_solicitud_intervalo(
         "MIC-01",
@@ -77,13 +141,41 @@ def test_limite_consecutivo_0900_1000_permitido():
 
 def test_unidades_distintas_simultaneas():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "ACTIVA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "ACTIVA",
+        }
     ]
-    validar_solicitud_intervalo("MIC-02", "2026-10-22T10:00", "2026-10-22T11:00", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+    validar_solicitud_intervalo(
+        "MIC-02",
+        "2026-10-22T10:00",
+        "2026-10-22T11:00",
+        "Ana",
+        ahora=AHORA,
+        inventario=inventario_test(),
+        reservas_activas=reservas_activas,
+    )
 
 
 def test_reserva_cancelada_no_bloquea():
     reservas_activas = [
-        {"id": 1, "unidad_id": "MIC-01", "inicio": "2026-10-22T10:00", "fin": "2026-10-22T11:00", "estado": "CANCELADA"}
+        {
+            "id": 1,
+            "unidad_id": "MIC-01",
+            "inicio": "2026-10-22T10:00",
+            "fin": "2026-10-22T11:00",
+            "estado": "CANCELADA",
+        }
     ]
-    validar_solicitud_intervalo("MIC-01", "2026-10-22T10:30", "2026-10-22T11:30", "Ana", ahora=AHORA, inventario=inventario_test(), reservas_activas=reservas_activas)
+    validar_solicitud_intervalo(
+        "MIC-01",
+        "2026-10-22T10:30",
+        "2026-10-22T11:30",
+        "Ana",
+        ahora=AHORA,
+        inventario=inventario_test(),
+        reservas_activas=reservas_activas,
+    )

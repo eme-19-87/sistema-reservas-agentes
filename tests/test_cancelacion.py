@@ -1,4 +1,5 @@
 """Pruebas de cancelación de reservas."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -65,5 +66,7 @@ def test_cancelar_reserva_ya_iniciada_permitido(env_db_temporal):
         reloj=lambda: datetime(2026, 10, 22, 8, 0),
     )
     # cancelar con reloj posterior al inicio
-    cancelada = servicio.cancelar_reserva(res["id"], reloj=lambda: datetime(2026, 10, 22, 9, 30))
+    cancelada = servicio.cancelar_reserva(
+        res["id"], reloj=lambda: datetime(2026, 10, 22, 9, 30)
+    )
     assert cancelada["estado"] == "CANCELADA"

@@ -977,3 +977,436 @@ reserva activa y otra cancelada. Los logs del primer y segundo arranque no mostr
 **Resultado:** la reserva activa y la cancelada, creadas y canceladas desde la UI,
 sobrevivieron a la detención y al reinicio de `reflex run` con el mismo `RESERVAS_DB`,
 con sus datos y estados intactos. La suite completa queda en 66/66.
+
+## Paso 22 - README: Especificación y Solución
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se reescribió `README.md` para completar la sección 1
+(problema, alcance, reglas, supuestos y límites, requisitos verificables RF-01 a RF-18 y
+criterios de aceptación) y la sección 2 (estructura, decisiones técnicas, requisitos
+previos y versiones, instalación, carga/reinicio/borrado de datos, comandos, ejemplo de
+entrada y salida, ubicación de los datos y pendientes/limitaciones). Se dejaron las
+secciones 3 y 4 como pendientes para los Pasos 23 y 24. Se reemplazaron los enlaces
+relativos inválidos por rutas del repositorio y se documentó explícitamente que los
+clics del navegador no se automatizan.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4. El proyecto
+declara Python >=3.11 en `pyproject.toml`.
+
+**Resultados esperados y observados:**
+
+| Comprobación | Esperado | Observado |
+| --- | --- | --- |
+| Secciones 1 y 2 del README | Incluir todo el contenido del Paso 22 | Contenido completo; secciones 3 y 4 señaladas como pendientes |
+| Enlaces y anclas del README | Todas las rutas y anclas resuelven | 16 enlaces revisados; 0 problemas |
+| `python -m pytest` | Suite verde | `66 passed in 11.33s`; código 0 |
+| `git diff --check` | Sin errores de whitespace | Código 0 |
+| `python -m reservas init-db` con base temporal | Código 0 y base creada | Código 0; alta de prueba con ID 1 |
+| `python -m reservas init-db --reset --yes` | Código 0 y cero reservas | Código 0; `FILAS 0` |
+| `ruff check .` | Sin cambios de código en este paso | 115 hallazgos preexistentes: 88 E501, 16 F401, 7 I001 y 4 E731; código 1 |
+
+La comprobación de enlaces y anclas se hizo con un script local sobre `README.md`; no se
+encontraron rutas ni anclas inexistentes. La base temporal
+`C:\Users\espin\AppData\Local\Temp\opencode\readme-paso22.db` se eliminó después de la
+prueba de inicialización y reset.
+
+**Decisiones:**
+
+- Se mantuvo la estructura del README en cuatro secciones, pero solo se completaron las
+  secciones 1 y 2 correspondientes a este paso.
+- Los enlaces a la especificación se dirigieron a `spec.md` y a sus secciones 17 y 20,
+  en lugar de usar enlaces externos o rutas relativas inválidas.
+- Se documentaron las versiones realmente observadas y se aclaró que la red solo es
+  necesaria para la instalación inicial.
+- No se modificaron `spec.md`, `plan.md` ni el código de la aplicación.
+
+**Pasos no ejecutados:**
+
+- No se inició el Paso 23 ni se completaron las secciones 3 o 4.
+- No se repitió el flujo de navegador; se enlazaron los resultados de los Pasos 20 y 21.
+- No se recreó el entorno desde cero ni se corrigieron los hallazgos de `ruff`.
+- No se inició ningún servidor de prueba para este paso.
+
+**Evidencia:**
+
+- `README.md`: secciones 1 y 2 completas.
+- `docs/agent/progreso.md`: este registro.
+- `specs/reservas-laboratorio/tasks.md`: Paso 22 marcado como completado.
+
+**Resultado:** el README contiene la especificación breve y la solución con los datos
+solicitados, los enlaces resuelven, los comandos de datos se validaron con una base
+temporal y la suite completa sigue en 66/66. El Paso 22 queda completado sin modificar
+código de la aplicación.
+
+## Paso 23 - README: Preparación del agente y decisiones
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Objetivo:** completar la sección 3 del README (entorno y modelo, instrucciones,
+contexto, permisos y aprobaciones, adaptaciones con evidencia y retención del progreso) y
+la sección 4.1 con las decisiones significativas, sus motivos, alternativas y
+consecuencias. Los tres episodios de delegación corresponden al Paso 24.
+
+**Trabajo realizado:**
+
+- Se reescribió `README.md` §3 con el arnés OpenCode, el modelo Big Pickle
+  (`opencode/big-pickle`), el entorno actual (Windows/PowerShell, Python 3.13.11,
+  Reflex 0.10.0, pytest 8.3.4 y ruff 0.8.4), la rama `features_documentacion` y enlaces
+  a la preparación, `CLAUDE.md`, la especificación, el plan, las tareas y el progreso.
+- Se documentaron las instrucciones aplicadas, el contexto incluido y excluido, los
+  permisos y aprobaciones, las adaptaciones verificadas (turnos consecutivos,
+  persistencia, frontera Reflex y skill `reflex-rules`) y la retención/revisión del
+  progreso.
+- Se añadió `README.md` §4.1 con cinco decisiones: SQLite frente a JSON para las
+  reservas, Reflex sin `rx.Model`, intervalos semiabiertos, handlers delgados en el
+  `State` y Reflex para la interfaz con CLI solo para mantenimiento. Cada una incluye
+  motivo, alternativas descartadas, consecuencias y evidencia.
+- Se actualizó `docs/agent/preparacion-agente.md` con la §10, que conserva la preparación
+  inicial del 2026-10-22 y registra el entorno vigente al 2026-10-26.
+- Se dejó `README.md` §4.2 como pendiente explícito del Paso 24; no se inventaron
+  episodios ni correcciones.
+- No se modificaron `spec.md`, `plan.md` ni el código de la aplicación.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4. El proyecto
+declara Python >=3.11 en `pyproject.toml`.
+
+**Resultados esperados y observados:**
+
+| Comprobación | Esperado | Observado |
+| --- | --- | --- |
+| Secciones 3 y 4.1 del README | Incluir entorno, preparación y decisiones con evidencia | Contenido completo; §4.2 queda pendiente para el Paso 24 |
+| Enlaces y anclas | Todas las rutas y anclas resuelven | 59 enlaces, 35 encabezados y 0 problemas; incluidas las anclas de `preparacion-agente.md` |
+| `python -m pytest` | Suite verde | `66 passed in 8.43s`; código 0 |
+| Pruebas seleccionadas de frontera, solapamiento y persistencia | Verificar la evidencia citada | `10 passed`; código 0; `NO_REFLEX_IMPORT_IN_SRC` |
+| `git diff --check` | Sin errores de whitespace | Código 0; solo avisos de conversión LF/CRLF de Git |
+| `ruff check .` | Sin cambios de código en este paso | No se repitió; el último resultado del Paso 22 sigue siendo 115 hallazgos preexistentes |
+
+La comprobación de enlaces se hizo con un script local que también resolvió las anclas de
+los archivos Markdown de destino. La suite completa y las pruebas seleccionadas se
+ejecutaron en esta sesión con el intérprete de `.venv`.
+
+**Decisiones:**
+
+- Se mantuvo la preparación inicial de `docs/agent/preparacion-agente.md` como registro
+  histórico y se añadió una actualización separada para no borrar la evidencia del
+  entorno del 2026-10-22.
+- Se documentó el modelo y el arnés realmente observados, sin afirmar una versión interna
+  del modelo que el entorno no expone.
+- Las decisiones se enlazaron con archivos, pruebas y commits verificables; los episodios
+  de delegación se dejaron para el Paso 24 para no presentar resultados no ocurridos.
+- No se modificaron `spec.md`, `plan.md` ni el código porque el alcance del Paso 23 es
+  exclusivamente de documentación.
+
+**Pasos no ejecutados:**
+
+- No se inició el Paso 24 ni se registraron los tres episodios de delegación.
+- No se instalaron dependencias, no se usó red, no se reinició `data/reservas.db` y no se
+  ejecutó el flujo manual del navegador.
+- No se modificaron `spec.md`, `plan.md` ni archivos de código.
+- No se repitió `ruff check .`; no hubo cambios de código en este paso.
+- No se hizo `git push`.
+
+**Evidencia:**
+
+- `README.md`: secciones 3 y 4.1 completas; §4.2 pendiente del Paso 24.
+- `docs/agent/preparacion-agente.md`: §10 con el entorno vigente.
+- `docs/agent/progreso.md`: este registro.
+- `specs/reservas-laboratorio/tasks.md`: Paso 23 marcado como completado.
+
+**Resultado:** el README documenta el entorno y el modelo reales, las instrucciones y
+permisos, las adaptaciones con evidencia y las decisiones significativas con alternativas
+y consecuencias. Los enlaces y anclas resuelven, la suite completa sigue en 66/66 y el
+Paso 23 queda completado sin modificar código ni iniciar el Paso 24.
+
+## Paso 24 — Tres episodios de delegación
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se completaron en `docs/agent/delegacion.md` los tres episodios
+obligatorios con el formato de `plan.md` §12 (objetivo y requisito → contexto e
+instrucción → resultado → decisión humana → evidencia), sustituyendo los tres marcadores
+«Pendiente»:
+
+1. **Episodio 1 — Regla de solapamiento con intervalos semiabiertos (Paso 6):** casos de
+   borde 10:00–11:00 → 11:00–12:00 permitido y → 10:30–11:30 rechazado; se anota que en la
+   sesión del Paso 6 no se ejecutó `pytest` (Python no disponible) y que la suite se ejecutó
+   después; se registra la limpieza de code smells de `dominio.py` como corrección
+   ocurrida.
+2. **Episodio 2 — Persistencia SQLite y verificación tras reinicio (Pasos 7, 9 y 21):**
+   repositorio, servicio, CLI, pruebas automáticas y verificación manual tras
+   `taskkill /T /F` + reinicio con el mismo `RESERVAS_DB`.
+3. **Episodio 3 — Interfaz Reflex con `State` delgado (Pasos 13 a 20):** presentación,
+   `State`, componentes, humo y comprobación en navegador; se registran como correcciones
+   que sí ocurrieron la limpieza de code smells de la capa de UI, la incidencia de dispatch
+   por frontend obsoleto (sin cambio de código) y la corrección `EBUSY`/hot-reload.
+
+Cada episodio enlaza commits, archivos y pruebas verificables. No se inventaron fallas ni
+correcciones: solo se anotaron las documentadas en este archivo.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .venv\Scripts\python.exe -m pytest -q
+.................................. (66 pruebas)     [100%]
+EXIT=0
+
+$ .venv\Scripts/python.exe -m pytest -q | head -c 300 | tr -cd '.' | wc -c
+66
+
+$ .venv\Scripts/ruff.exe check .
+Found 115 errors.
+RUFF_EXIT=1
+```
+
+```text
+$ git merge-base --is-ancestor <commit> <merge>   # comprobación de la evidencia enlazada
+OK f8eb24c is ancestor of 7c07260   (incluido en el merge 48d459a)
+OK e25bbd6 is ancestor of 7c07260
+OK ac6894b is ancestor of 5c79089
+OK 7eee5ad / c710b27 / 3fa362a / 4cfc567 / 4ea75c3 / e576d7f incluidos en merges
+$ test -f <archivo enlazado>        # 10 archivos enlazados: OK (tests/, reservas_ui/, docs/)
+$ git cat-file -t <commit>          # 19 commits enlazados: OK (commit)
+```
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4. Rama
+`features_documentacion`.
+
+**Resultado:** la suite completa pasa (66/66, código 0). `ruff check .` sigue con los 115
+hallazgos preexistentes (88 E501, 16 F401, 7 I001, 4 E731) documentados desde el Paso 19;
+este paso no modificó código Python, por lo que no añade hallazgos ni los corrige (la
+limpieza global corresponde al Paso 25). Todos los commits y archivos citados en los tres
+episodios existen y fueron comprobados.
+
+**Pasos no ejecutados:**
+
+- No se modificó `README.md`: sus líneas 14, 412, 530-531 y 620-623 aún dicen que los
+  episodios se completan en el Paso 24; corregir esa inconsistencia de documentación
+  corresponde a la convergencia final (Paso 25), que no se inició.
+- No se inició el Paso 25 ni el Paso 26; no se ejecutó `reflex run` ni flujo de navegador;
+  no se usó red; no se reinició `data/reservas.db`; no se hizo `git push`.
+- No se modificaron `spec.md`, `plan.md` ni archivos de código fuente.
+
+**Evidencia:**
+
+- `docs/agent/delegacion.md`: episodios 1, 2 y 3 completados con sus enlaces.
+- `specs/reservas-laboratorio/tasks.md`: Paso 24 marcado como completado.
+- `docs/agent/progreso.md`: este registro.
+
+## Paso 25 — Convergencia final del SDD
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:**
+
+1. **Comparación `spec.md`/`plan.md` contra la implementación.** Se recorrieron `spec.md`
+   §5–§16, §17 (RF-01 a RF-18) y §20, y `plan.md` §6–§11. Cada RF tiene su prueba o su
+   verificación manual. Se encontraron **dos faltantes** y **una inconsistencia
+   documental**, corregidos en este paso:
+   - **Faltante 1 (`spec.md` §14):** «un error inesperado se registra en el log y se
+     muestra un mensaje genérico».
+     `reservas_ui/presentacion.py::mensaje_error` devolvía `str(exc)` sin registrar nada.
+     Ahora usa `logging.getLogger(__name__)` y devuelve la constante
+     `MENSAJE_ERROR_INESPERADO`. Los ocho mensajes de dominio no cambian.
+   - **Faltante 2 (`spec.md` §12):** el listado «ordenado por inicio ascendente y luego
+     por ID» estaba implementado en `servicio.listar_reservas` (`ORDER BY inicio ASC,
+     id ASC`) pero no tenía prueba; se añadió
+     `test_listado_ordenado_por_inicio_y_luego_por_id`.
+   - **Inconsistencia documental:** el `README.md` seguía diciendo que los episodios de
+     delegación y la convergencia final estaban pendientes. Se actualizaron el bloque de
+     estado, el apartado «Estado de verificación», «Pendientes», §3.5 y §4.2 (nueva tabla
+     con los tres episodios y su evidencia), y el recuento de pruebas (66 → 68).
+2. **Limpieza de los hallazgos del linter (115 al inicio del paso).** Sin cambiar
+   comportamiento: `ruff check --fix .` (25 automáticos: F401 importos sin usar e I001
+   bloques sin ordenar), `ruff format .` (21 archivos reflow) y corrección manual de 13
+   E501 (SQL troceado, firmas y docstrings partidos) y 4 E731 (`reloj = lambda: ...` →
+   `def reloj()`). Además se eliminó una asignación muerta
+   (`servicio.inicializar_bd = lambda: None`) en `tests/test_creacion.py`.
+3. **Comprobación de secretos, datos reales y transcripciones.**
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .venv/Scripts/python.exe --version
+Python 3.13.11
+$ .venv/Scripts/python.exe -m pytest --version
+pytest 8.3.4
+$ .venv/Scripts/ruff.exe --version
+ruff 0.8.4
+$ .venv/Scripts/python.exe -m pip show reflex | head -2
+Name: reflex
+Version: 0.10.0
+
+$ .venv/Scripts/python.exe -m pytest -q
+......................................     [100%]     # 68 pruebas
+PYTEST_EXIT=0
+
+$ .venv/Scripts/ruff.exe check .
+All checks passed!
+RUFF_EXIT=0
+
+$ .venv/Scripts/ruff.exe format --check .
+29 files already formatted
+FMT_EXIT=0
+
+$ git diff --check
+check=0
+
+$ grep -rn "import reflex" src/        # frontera de capas
+(sin resultados, código 1)
+```
+
+Búsqueda de secretos y datos reales (patrones `api_key|secret|password|bearer|ghp_|sk-|AKIA|BEGIN ... PRIVATE KEY` sobre `*.py|*.md|*.json|*.toml|*.txt|*.yml`, excluyendo `.venv`, `.web`, `node_modules`, `reflex.lock` y `.states`):
+
+```text
+# Solo coincidencias con las reglas de la propia política (CLAUDE.md, spec.md,
+# README.md, tasks.md y docs/agent): «no incluir secretos ni credenciales».
+# Ningún token, clave, credencial ni archivo .env/.pem/.key versionado:
+$ git ls-files | grep -iE "\.env|\.db$|\.pem|\.key$"
+(sin resultados, código 1)
+
+# Único dato personal en el repositorio:
+specs/reservas-laboratorio/tasks.md:102: dgaifirst@gmail.com
+# Es la dirección de entrega que fija el propio challenge (Paso 26); no es un secreto
+# ni un dato de estudiantes. Se conserva.
+```
+
+Solicitantes: todos ficticios (`Ana`, `Beto`, `Carla`, `Kike`, `Luis`, `Marta`,
+`Prueba UI`, etc.) en pruebas y datos. `docs/agent/` contiene extractos e instrucciones,
+**no** transcripciones completas de conversaciones.
+
+**Resultado:** 68/68 pruebas (código 0), `ruff check .` y `ruff format --check .` sin
+hallazgos, `git diff --check` limpio, frontera `src/` ↔ `reflex` intacta y repositorio sin
+secretos ni datos reales. El README refleja el estado real (4 secciones completas, episodios
+enlazados, solo resta el Paso 26).
+
+**Pasos no ejecutados:**
+
+- No se modificaron `spec.md` ni `plan.md`: la comparación no reveló contradicciones con la
+  implementación, por lo que no hizo falta un commit de cambio de especificación.
+- No se ejecutó `reflex run` ni ninguna comprobación visual en navegador; el ajuste de
+  `presentacion.py` está cubierto por pruebas sin servidor. Los estados de foco siguen
+  apoyándose en los estilos por defecto de los componentes de Reflex, como en el Paso 18.
+- No se usó red, no se reinició `data/reservas.db`, no se hizo `git push` y no se
+  inició el Paso 26.
+
+**Decisiones:**
+
+- Se corrigieron los faltantes dentro del propio Paso 25 en lugar de abrir una nueva
+  tarea, porque `tasks.md` ordena «corregir faltantes e inconsistencias».
+- Se descartó reescribir `spec.md`/`plan.md`: la divergencia estaba en la implementación y
+  en el README, no en la especificación.
+- Las entradas anteriores de este archivo conservan sus recuentos históricos (58, 63, 66);
+  solo se actualizan los estados vigentes del README.
+- Los cambios de código y de documentación van en commits separados para que la evolución
+  sea recuperable.
+
+**Evidencia:**
+
+- `reservas_ui/presentacion.py` (log + mensaje genérico),
+  `tests/test_ui_presentacion.py::test_error_inesperado_muestra_mensaje_generico_y_se_registra`,
+  `tests/test_creacion.py::test_listado_ordenado_por_inicio_y_luego_por_id`.
+- `README.md` (estado, verificación, pendientes y §4.2).
+- `specs/reservas-laboratorio/tasks.md`: Paso 25 marcado como completado.
+- `docs/agent/progreso.md`: este registro.
+
+## Comprobación en navegador tras la convergencia (Paso 25)
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Motivo:** verificación solicitada para confirmar que la limpieza de code smells del
+Paso 25 no había cambiado la interfaz.
+
+**Entorno (aislado; no se tocó `data/reservas.db`):**
+
+- Base temporal `.evidencia/reservas-paso25.db` (carpeta ignorada por Git) creada con
+  `python -m reservas init-db`; 5 unidades, 0 reservas al empezar.
+- `reflex run --frontend-port 3010 --backend-port 8010` con `RESERVAS_DB` apuntando a esa
+  base; app compilada y en `App Running` en 3010/8010.
+- Edge 156 headless con CDP en el puerto 9223 y perfil propio en `.evidencia/edge-profile`.
+- Guion `.evidencia/verificar.js` (Node 24 + `ws` de `.web/node_modules`) que rellena los
+  campos, selecciona las unidades y hace clic sobre los botones reales de la página, lee los
+  mensajes del DOM y guarda capturas.
+- Fechas usadas: `2026-11-05` (futuras respecto a la fecha del sistema).
+
+**Resultados esperados y observados (ejecución válida):**
+
+| Paso | Esperado | Observado |
+| --- | --- | --- |
+| Estructura | Etiquetas con `for`, ids de formularios y botones | 9 labels asociados (`disp-unidad` … `filtro-estado`); `#form-disponibilidad`, `#form-reserva`, `#btn-consultar`, `#btn-reservar`, `#btn-limpiar-filtros`; 4 campos `datetime-local` |
+| Consulta MIC-01 10:00–11:00 | `Disponible.` | `Disponible.` |
+| Reservar MIC-01 10:00–11:00 | Éxito con ID 1 | `Reserva creada con ID 1.` |
+| Tras el éxito | Solicitante, inicio y fin limpios; unidad conservada | `""`, `""`, `""`, unidad `MIC-01` |
+| Consulta MIC-01 10:30–11:30 | `No disponible` con conflictos (ID, solicitante, intervalo) | `No disponible: se superpone con la reserva activa 1.`; conflicto `Reserva 1 · Prueba Paso veinticinco · 2026-11-05T10:00 a 2026-11-05T11:00` |
+| Reservar MIC-01 11:00–12:00 | Límite consecutivo aceptado | `Reserva creada con ID 2.` |
+| Reservar MIC-02 10:00–11:00 | Unidad distinta aceptada | `Reserva creada con ID 3.` |
+| Cancelar la reserva 1 | `Reserva cancelada.`, fila `CANCELADA` y sin botón | `Reserva cancelada.`; fila `1 MIC-01 … CANCELADA —`; `#cancelar-1` ya no existe |
+| Orden del listado | Inicio ascendente y luego ID | Filas `1 (10:00)`, `3 (10:00)`, `2 (11:00)` |
+| Consulta MIC-01 10:00–11:00 tras cancelar | `Disponible.` (intervalo liberado) | `Disponible.` |
+| Filtro estado `CANCELADA` | 1 fila | 1 fila |
+| Limpiar filtros | 3 filas | 3 filas |
+
+**Estado final de la base (consulta directa a SQLite):**
+
+| ID | Unidad | Solicitante | Inicio | Fin | Estado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MIC-01 | Prueba Paso veinticinco | 2026-11-05T10:00 | 2026-11-05T11:00 | CANCELADA |
+| 2 | MIC-01 | Turno Consecutivo | 2026-11-05T11:00 | 2026-11-05T12:00 | ACTIVA |
+| 3 | MIC-02 | Unidad Distinta | 2026-11-05T10:00 | 2026-11-05T11:00 | ACTIVA |
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4,
+Edge 156.0.4314.42, Node v24.11.1.
+
+**Verificación adicional:**
+
+```text
+$ grep -aiE "error|traceback|exception|EBUSY" .evidencia/reflex.log
+(sin resultados)
+$ .venv/Scripts/python.exe -m pytest -q
+......................................     [100%]     # 68 pruebas, código 0
+$ .venv/Scripts/ruff.exe check .
+All checks passed!
+$ netstat -ano | grep -E ":3010|:8010|:9223"
+sin listeners (procesos detenidos al cerrar)
+```
+
+**Pasos no ejecutados o descartados:**
+
+- No hubo sesión manual humana: los clics y la escritura se automatizaron con CDP, como en
+  los Pasos 20 y 21.
+- Las dos primeras ejecuciones del guion se **descartaron** por causas del guion, no de la
+  aplicación: el relleno de un campo disparaba el `on_change` con retardo y se envió el
+  formulario con el estado aún incompleto (se observaron `Fecha inválida.` y
+  `Solicitante inválido.`), y un solicitante con dígitos (`Prueba Paso 25`) fue rechazado por
+  la validación del dominio, comportamiento ya aceptado y registrado desde el Paso 20. Se
+  repitieron los pasos con esperas mayores y un solicitante sin dígitos; la ejecución válida
+  es la de la tabla anterior.
+- No se reinició la aplicación (la persistencia tras reinicio ya está verificada en el Paso
+  21) ni se probaron dos sesiones concurrentes (fuera de alcance).
+- No se modificó código de la aplicación en esta verificación.
+
+**Decisiones:**
+
+- Se añadió `.evidencia/` a `.gitignore` para conservar guion, capturas, perfil y base
+  temporal localmente sin versionar binarios ni perfiles de navegador.
+- Se usaron puertos 3010/8010 y 9223 y una base temporal para no interferir con
+  `data/reservas.db` ni con una instancia en 3000/8000.
+- No se corrigió nada de la interfaz: todo lo observado coincide con `spec.md` §12, §14 y con
+  el procedimiento del Paso 20.
+
+**Evidencia:**
+
+- `.evidencia/observaciones.json`, `.evidencia/verificar.js`, `.evidencia/reflex.log` y las
+  capturas `.evidencia/01-estructura.png` … `.evidencia/08-filtros.png` (ignoradas por Git).
+- `.evidencia/reservas-paso25.db` con las tres filas de la tabla anterior.
+- `docs/agent/progreso.md`: este registro.

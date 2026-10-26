@@ -1,9 +1,18 @@
 """Capa de presentación (funciones puras)."""
+
 from __future__ import annotations
 
+import logging
 from typing import Any, Callable
 
 from reservas import dominio
+
+logger = logging.getLogger(__name__)
+
+MENSAJE_ERROR_INESPERADO = (
+    "Error inesperado: la operación no se completó. "
+    "Consulte el registro del servidor para más detalles."
+)
 
 
 def mensaje_error(exc: Exception) -> str:
@@ -28,10 +37,18 @@ def mensaje_error(exc: Exception) -> str:
         return "Reserva no encontrada."
     if isinstance(exc, dominio.ReservaYaCancelada):
         return "Reserva ya cancelada."
-    return str(exc)
+    logger.error("Error inesperado en la interfaz: %s", exc, exc_info=True)
+    return MENSAJE_ERROR_INESPERADO
 
 
-def consultar(servicio: Any, unidad_id: str, inicio: str, fin: str, reloj: Callable | None = None, **kwargs: Any) -> dict[str, Any]:
+def consultar(
+    servicio: Any,
+    unidad_id: str,
+    inicio: str,
+    fin: str,
+    reloj: Callable | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     try:
         res = servicio.consultar_disponibilidad(unidad_id, inicio, fin, reloj=reloj)
         if res.get("disponible"):
@@ -47,7 +64,12 @@ def consultar(servicio: Any, unidad_id: str, inicio: str, fin: str, reloj: Calla
             msg = "No disponible."
         return {"disponible": False, "mensaje": msg, "conflictos": conflictos}
     except Exception as exc:
-        return {"disponible": None, "mensaje": mensaje_error(exc), "conflictos": [], "error": True}
+        return {
+            "disponible": None,
+            "mensaje": mensaje_error(exc),
+            "conflictos": [],
+            "error": True,
+        }
 
 
 def reservar(
@@ -68,7 +90,9 @@ def reservar(
         return {"ok": False, "mensaje": mensaje_error(exc)}
 
 
-def cancelar(servicio: Any, reserva_id: int, reloj: Callable | None = None, **kwargs: Any) -> dict[str, Any]:
+def cancelar(
+    servicio: Any, reserva_id: int, reloj: Callable | None = None, **kwargs: Any
+) -> dict[str, Any]:
     try:
         res = servicio.cancelar_reserva(reserva_id, reloj=reloj)
         return {"ok": True, "mensaje": "Reserva cancelada.", "reserva": res}
@@ -76,7 +100,12 @@ def cancelar(servicio: Any, reserva_id: int, reloj: Callable | None = None, **kw
         return {"ok": False, "mensaje": mensaje_error(exc)}
 
 
-def listar_filas(servicio: Any, unidad_id: str | None = None, estado: str | None = None, **kwargs: Any) -> list[dict[str, Any]]:
+def listar_filas(
+    servicio: Any,
+    unidad_id: str | None = None,
+    estado: str | None = None,
+    **kwargs: Any,
+) -> list[dict[str, Any]]:
     reservas = servicio.listar_reservas(unidad_id=unidad_id, estado=estado)
     filas = []
     for r in reservas:

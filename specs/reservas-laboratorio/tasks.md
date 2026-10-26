@@ -84,19 +84,31 @@
 - \[x\] **Paso 21 — Persistencia manual tras reinicio**
   - `docs/agent/verificacion-persistencia.md`: reservar y cancelar desde la UI, detener `reflex run`, volver a ejecutarlo y comprobar que activas y canceladas siguen presentes.
   - Registrar resultados esperados y observados.
-- \[ \] **Paso 22 — README: Especificación y Solución**
+- \[x\] **Paso 22 — README: Especificación y Solución**
   - Sección 1: problema, alcance, requisitos verificables, reglas, supuestos (zona horaria, formato, fechas pasadas, límites), criterios de aceptación; enlace a [`spec.md`](http://spec.md).
   - Sección 2: estructura, decisiones, requisitos previos y versiones (Python, Reflex, red solo en la instalación inicial), instalación, carga y reinicio de datos con advertencia de borrado, comandos, ejemplo de entrada y salida, ubicación de los datos, pendientes y limitaciones (incluido que los clics del navegador no se automatizan).
-- \[ \] **Paso 23 — README: Preparación del agente y decisiones**
+- \[x\] **Paso 23 — README: Preparación del agente y decisiones**
   - Sección 3: entorno y modelo, instrucciones, contexto, permisos, adaptaciones con enlaces a evidencia real.
   - Sección 4: decisiones significativas con motivos, alternativas y consecuencias (SQLite vs JSON, Reflex sin `rx.Model`, intervalos semiabiertos, handlers delgados).
-- \[ \] **Paso 24 — Tres episodios de delegación**
+- \[x\] **Paso 24 — Tres episodios de delegación**
   - Registrar en `docs/agent/delegacion.md` tres episodios **reales** (objetivo y requisito → contexto y extracto de instrucción → resultado del agente → decisión humana con motivo → enlace a commit, archivo o prueba).
   - Registrar correcciones solo si ocurrieron.
-- \[ \] **Paso 25 — Convergencia final del SDD**
+- \[x\] **Paso 25 — Convergencia final del SDD**
   - Releer [`spec.md`](http://spec.md) y [`plan.md`](http://plan.md); comparar con la implementación; corregir faltantes e inconsistencias (cambios de especificación en commits propios con motivo).
   - Ejecutar `pytest -q` y `ruff check .` desde un entorno limpio y registrar comandos, versiones y resultados.
   - Confirmar que no hay secretos, datos reales ni transcripciones completas en el repositorio.
-- \[ \] **Paso 26 — Entrega**
-  - Verificar que el repositorio sea accesible y revisar permisos; identificar rama y commit.
-  - Enviar el enlace a [`dgaifirst@gmail.com`](mailto:dgaifirst@gmail.com) con el asunto exacto «Challenge IA».
+
+## Fase 4— Fix De Interfaz, Pruebas y Documentación
+
+- \[ \] **Paso 26 — Fix Interfaz**
+  - Modifica la interfaz para que el formulario de reserva, el formulario de disponibilidad y la tabla en donde se ven las reservas y se pueden cancelar estén separadas en tres pestañas distintas.
+  - Que cada formulario tenga su propio elemento para mostrar los mensajes de éxito y error según sucedan.
+  - Los nuevos códigos no deben contener code smell.
+  - Dejar registro de lo realizado en los documentos [progreso.md](http://progreso.md) y [readme.md](http://readme.md). Aclarar que esta fue una decisión humana después de revisar el código.
+  - Confirmar la consistencia entre los archivos de documentación.
+- \[ \] **Paso 27 — Implementando Playwright Para Las Pruebas**
+  - Instala Playwright en el ambiente virtual .venv.
+  - Prepara los scripts de test en Playwright para cada uno de los requisitos verificables indicados en [spec.md](http://spec.md)
+  - No avances hasta no asegurarte que cada una de los tests pasó satisfactoriamente.
+  - Registrar todo lo realizado en los documentos [progreso.md](http://progreso.md) y [readme.md](http://readme.md). Aclarar que esta fue una decisión humana después de revisar el código.
+  - Confirma la consistencia entre los archivos de la documentación.

@@ -1,8 +1,8 @@
 """Pruebas de persistencia tras reinicio."""
+
 from __future__ import annotations
 
-from reservas import servicio
-from reservas import repositorio
+from reservas import repositorio, servicio
 from reservas.repositorio import obtener_conexion
 
 
