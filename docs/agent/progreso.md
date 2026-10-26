@@ -652,7 +652,8 @@ una sesión que ya lo mostró es cerrar las pestañas antiguas de
 
 ## Corrección — EBUSY al reservar (2026-10-26)
 
-**Estado:** corregido, verificado y versionado en este commit.
+**Estado:** corregido, verificado y versionado en `05808ed`; registro de acciones
+actualizado en este documento.
 
 **Síntoma:** al reservar, Reflex intentaba reconciliar los paquetes del frontend,
 mostraba `Removing unused frontend packages` y fallaba con `EBUSY`. En la ejecución
@@ -673,6 +674,34 @@ completa también aparecía `[ERROR] Unexpected exit from worker-1`.
   y reiniciaba el backend (`Changes detected, reloading workers..`).
 - En la ejecución completa ese reinicio terminaba con
   `[ERROR] Unexpected exit from worker-1`.
+
+**Acciones ejecutadas:**
+
+- Se reprodujo el fallo y se revisó el log de `reflex run`; se identificaron
+  `Removing unused frontend packages`, `EBUSY` y `Unexpected exit from worker-1`.
+- Se inspeccionaron los metadatos de Reflex 0.10 y se confirmó que ejecuta
+  `npm add -d`; en npm 11, `-d` significa `--loglevel info`, no `--save-dev`.
+- Se revisó `reflex.lock/package.json` y se confirmó que las 10 dependencias de
+  desarrollo estaban clasificadas como `dependencies`.
+- Se corrigió manualmente el manifiesto con 14 dependencias de ejecución y 10 de
+  desarrollo; se regeneró `reflex.lock/package-lock.json`.
+- Se sincronizaron `.web/package.json` y `.web/package-lock.json` desde
+  `reflex.lock/`, y se ejecutó `npm install --legacy-peer-deps` para añadir los
+  5 paquetes que faltaban.
+- Se confirmó que `data/` estaba dentro de las rutas de hot reload y que las
+  escrituras de SQLite provocaban el reinicio del backend.
+- Se añadió `REFLEX_HOT_RELOAD_EXCLUDE_PATHS="data"` en `rxconfig.py`.
+- Se ejecutó `reflex compile` y después `reflex run --loglevel debug`; se
+  comprobó que `data` no aparece en `Reload paths` y que no hay `EBUSY`,
+  recargas por SQLite ni salida inesperada del worker.
+- Se probó una reserva real desde la interfaz con Edge headless y CDP; se creó
+  la reserva ID 7 y se verificó que el backend siguiera estable en 3000/8000.
+- Se ejecutaron `pytest -q`, `ruff check rxconfig.py` y
+  `ruff format --check rxconfig.py`.
+- Se eliminaron las reservas de prueba 4–7, se conservó el ID 3 activo y se
+  detuvo el servidor para dejar libres los puertos 3000 y 8000.
+- Se documentó la corrección en este archivo y se versionó en el commit
+  `05808ed`.
 
 **Cambios realizados:**
 
