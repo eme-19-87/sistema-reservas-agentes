@@ -890,3 +890,90 @@ no mostraron errores. La captura final quedó en
 
 **Resultado:** los seis pasos del procedimiento se completaron con los resultados
 esperados, sin errores en los logs, y la suite completa sigue en 66/66.
+
+## Paso 21 - Persistencia manual tras reinicio
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se levantó una instancia aislada de Reflex en los puertos
+3010/8010 con una base temporal nueva en
+`C:\Users\espin\AppData\Local\Temp\opencode\reservas-paso21.db`. Desde la UI se creó
+una reserva activa en MIC-01 (`Activa Persistente`, 2026-10-28T10:00-11:00) y otra en
+MIC-02 (`Cancelada Persistente`, 2026-10-28T12:00-13:00), que se canceló con el botón
+`Cancelar`. Se detuvo el proceso de `reflex run` y su árbol (`taskkill /T /F`), se
+comprobó que no quedaran listeners en 3010/8010 y se volvió a iniciar la app con el
+mismo `RESERVAS_DB`. En una página nueva después del reinicio se compararon las filas
+de la tabla y el contenido directo de SQLite.
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, Edge 156.0.4314.42.
+
+**Resultados esperados y observados:**
+
+| Comprobación | Esperado | Observado |
+| --- | --- | --- |
+| Alta de la reserva activa | Éxito con ID asignado | `Reserva creada con ID 1.`; `MIC-01`/`Activa Persistente`/`ACTIVA` |
+| Alta de la reserva cancelable | Éxito con ID asignado | `Reserva creada con ID 2.`; `MIC-02`/`Cancelada Persistente`/`ACTIVA` antes de cancelar |
+| Cancelación desde la UI | La fila conserva ID y datos, y pasa a `CANCELADA` | `Reserva cancelada.`; ID 2 pasó a `CANCELADA` y desapareció su botón `Cancelar` |
+| Reinicio de la app | La app vuelve a cargar sin borrar datos | La app respondió `200` en 3010 después del reinicio |
+| Contenido después del reinicio | Las dos reservas siguen presentes, con el mismo ID, datos y estado | Las dos filas reaparecieron con los valores de la tabla siguiente |
+| Consulta directa a SQLite | Los dos registros coinciden con la UI | Las dos filas coincidieron con la UI |
+
+**Estado observado después del reinicio:**
+
+| ID | Unidad | Solicitante | Inicio | Fin | Estado |
+| --- | --- | --- | --- | --- | --- |
+| 1 | MIC-01 | Activa Persistente | 2026-10-28T10:00 | 2026-10-28T11:00 | ACTIVA |
+| 2 | MIC-02 | Cancelada Persistente | 2026-10-28T12:00 | 2026-10-28T13:00 | CANCELADA |
+
+La reserva activa conservó su botón `Cancelar`; la cancelada conservó su estado y sus
+datos, sin volver a `ACTIVA`.
+
+**Verificación adicional:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest
+66 passed in 17.29s
+```
+
+La suite incluye `tests/test_persistencia.py`, que reabre una base temporal con una
+reserva activa y otra cancelada. Los logs del primer y segundo arranque no mostraron
+`Traceback`, `ERROR`, `EBUSY` ni excepciones.
+
+**Evidencia:**
+
+- `docs/agent/verificacion-persistencia.md`: procedimiento y resultados esperados y
+  observados.
+- `C:\Users\espin\AppData\Local\Temp\opencode\paso21-antes.png`: captura antes del
+  reinicio.
+- `C:\Users\espin\AppData\Local\Temp\opencode\paso21-despues.png`: captura después del
+  reinicio.
+- `C:\Users\espin\AppData\Local\Temp\opencode\reservas-paso21.db`: base temporal con
+  los IDs 1 (ACTIVA) y 2 (CANCELADA).
+- `C:\Users\espin\AppData\Local\Temp\opencode\reflex-paso21-1.out.log` y
+  `reflex-paso21-2.out.log`: logs de los dos arranques.
+
+**Limpieza:**
+
+- Se detuvieron la app de prueba y Edge; no quedan listeners en 3010/8010 ni en 9223.
+  Al cierre tampoco había listeners en 3000/8000.
+- Se conservaron la base temporal y las capturas como evidencia del Paso 21.
+
+**Decisiones:**
+
+- No se modificó código de la aplicación; sólo se creó la verificación, se actualizó
+  este registro y se marcó la tarea.
+- La detención fue forzada con `taskkill /T /F`, no con `Ctrl+C`; las transacciones ya
+  estaban confirmadas en SQLite y la reapertura recuperó ambos estados.
+
+**Pasos no ejecutados:**
+
+- La comprobación se hizo con un navegador real, pero los clics y la escritura se
+  automatizaron con CDP; no hubo una sesión manual humana.
+- No se reinició el sistema operativo ni se probaron dos sesiones concurrentes.
+- No se inició el Paso 22.
+
+**Resultado:** la reserva activa y la cancelada, creadas y canceladas desde la UI,
+sobrevivieron a la detención y al reinicio de `reflex run` con el mismo `RESERVAS_DB`,
+con sus datos y estados intactos. La suite completa queda en 66/66.

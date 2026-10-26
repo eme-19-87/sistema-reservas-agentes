@@ -81,7 +81,7 @@
 
 ## Fase 3 — Verificación, documentación y entrega
 
-- \[ \] **Paso 21 — Persistencia manual tras reinicio**
+- \[x\] **Paso 21 — Persistencia manual tras reinicio**
   - `docs/agent/verificacion-persistencia.md`: reservar y cancelar desde la UI, detener `reflex run`, volver a ejecutarlo y comprobar que activas y canceladas siguen presentes.
   - Registrar resultados esperados y observados.
 - \[ \] **Paso 22 — README: Especificación y Solución**
