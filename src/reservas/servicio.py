@@ -1,28 +1,21 @@
 """Servicio de reservas."""
+
 from __future__ import annotations
 
-import os
 import sqlite3
 from datetime import datetime
-from pathlib import Path
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 
-from . import dominio
-from . import repositorio
+from . import dominio, repositorio
 from .dominio import (
-    FechaInvalida,
-    IntervaloInvalido,
-    LimiteExcedido,
     ReservaNoEncontrada,
     ReservaYaCancelada,
-    SolicitanteInvalido,
     Superposicion,
-    UnidadDesconocida,
     truncar_al_minuto,
     validar_solicitud_intervalo,
 )
 from .inventario import obtener_inventario
-from .repositorio import inicializar_bd, obtener_conexion
+from .repositorio import obtener_conexion
 
 
 def _obtener_conexion_actual() -> sqlite3.Connection:
@@ -30,7 +23,9 @@ def _obtener_conexion_actual() -> sqlite3.Connection:
     ruta.parent.mkdir(parents=True, exist_ok=True)
     conn = obtener_conexion(ruta)
     try:
-        cur = conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='reservas'")
+        cur = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='reservas'"
+        )
         if cur.fetchone() is None:
             from .repositorio import crear_esquema, sembrar_unidades
 
@@ -53,7 +48,9 @@ def _formatear_fecha(dt: datetime) -> str:
     return dt.strftime(dominio.FORMATO_FECHA)
 
 
-def _obtener_reservas_activas_unidad(conn: sqlite3.Connection, unidad_id: str) -> list[dict[str, Any]]:
+def _obtener_reservas_activas_unidad(
+    conn: sqlite3.Connection, unidad_id: str
+) -> list[dict[str, Any]]:
     cur = conn.execute(
         """
         SELECT id, unidad_id, solicitante, inicio, fin, estado, creada_en, cancelada_en
@@ -124,12 +121,17 @@ def crear_reserva(
             creada_en = _formatear_fecha(ahora_trunc)
             cur = conn.execute(
                 """
-                INSERT INTO reservas (unidad_id, solicitante, inicio, fin, estado, creada_en, cancelada_en)
+                INSERT INTO reservas (
+                    unidad_id, solicitante, inicio, fin, estado, creada_en,
+                    cancelada_en
+                )
                 VALUES (?, ?, ?, ?, 'ACTIVA', ?, NULL)
                 """,
                 (
                     unidad_id,
-                    solicitante.strip() if isinstance(solicitante, str) else solicitante,
+                    solicitante.strip()
+                    if isinstance(solicitante, str)
+                    else solicitante,
                     _formatear_fecha(inicio_dt),
                     _formatear_fecha(fin_dt),
                     creada_en,
@@ -140,7 +142,9 @@ def crear_reserva(
             return {
                 "id": reserva_id,
                 "unidad_id": unidad_id,
-                "solicitante": solicitante.strip() if isinstance(solicitante, str) else solicitante,
+                "solicitante": solicitante.strip()
+                if isinstance(solicitante, str)
+                else solicitante,
                 "inicio": _formatear_fecha(inicio_dt),
                 "fin": _formatear_fecha(fin_dt),
                 "estado": "ACTIVA",
@@ -154,7 +158,9 @@ def crear_reserva(
         conn.close()
 
 
-def cancelar_reserva(reserva_id: int, reloj: Callable[[], datetime] | None = None) -> dict[str, Any]:
+def cancelar_reserva(
+    reserva_id: int, reloj: Callable[[], datetime] | None = None
+) -> dict[str, Any]:
     """Cancela una reserva activa."""
     ahora_trunc = _obtener_ahora(reloj)
     conn = _obtener_conexion_actual()
@@ -172,7 +178,8 @@ def cancelar_reserva(reserva_id: int, reloj: Callable[[], datetime] | None = Non
                 raise ReservaYaCancelada("Reserva ya cancelada.")
             cancelada_en = _formatear_fecha(ahora_trunc)
             conn.execute(
-                "UPDATE reservas SET estado = 'CANCELADA', cancelada_en = ? WHERE id = ?",
+                "UPDATE reservas SET estado = 'CANCELADA', cancelada_en = ? "
+                "WHERE id = ?",
                 (cancelada_en, reserva_id),
             )
             conn.commit()

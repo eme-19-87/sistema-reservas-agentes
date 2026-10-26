@@ -1,4 +1,5 @@
 """Estado de la aplicación (handlers delgados)."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -97,9 +98,7 @@ class State(rx.State):
         )
 
     def _aplicar_disponible_disp(self, res: dict[str, Any]) -> None:
-        self._asignar_vars_disp(
-            "mensaje_exito", res.get("mensaje", "Disponible."), []
-        )
+        self._asignar_vars_disp("mensaje_exito", res.get("mensaje", "Disponible."), [])
 
     def _aplicar_no_disponible_disp(self, res: dict[str, Any]) -> None:
         self._asignar_vars_disp(

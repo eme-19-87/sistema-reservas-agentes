@@ -1,4 +1,5 @@
 """Aplicación Reflex para el sistema de reservas."""
+
 import reflex as rx
 
 from reservas_ui import componentes

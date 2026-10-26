@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Callable, Iterable
 
-
 from .inventario import obtener_inventario
 
 
@@ -91,15 +90,16 @@ def _validar_sin_offset(cadena: str) -> None:
 def parsear_fecha_hora(cadena: str) -> datetime:
     """Parsea fecha/hora en formato YYYY-MM-DDTHH:MM sin zona horaria.
     Parámetros:
-    
-    cadena: Tipo String. Es la cadena de caracteres que representa la fecha con zona horaria
-    
+
+    cadena: Tipo String. Es la cadena de caracteres que representa la fecha
+        con zona horaria
+
     Retorno:
-    
+
     Retorna un objeto datetime con el formato YYYY-MM-DDHH:MM
-    
+
     Excepciones:
-    
+
     En caso de error, eleva una excepción FechaInvalida
     """
     _validar_tipo_cadena(cadena)
@@ -123,7 +123,8 @@ def _validar_solicitante_no_vacio(solicitante: str) -> str:
         SolicitanteInvalido: Excepción que se eleva si el solicitante es inválido
 
     Returns:
-        str: Retorna el nombre del solicitante sin espacios en blanco, en caso que no esté vacío
+        str: Retorna el nombre del solicitante sin espacios en blanco, en caso
+            que no esté vacío
     """
     if not isinstance(solicitante, str):
         raise SolicitanteInvalido("Solicitante inválido.")
@@ -136,10 +137,12 @@ def _validar_solicitante_sin_numeros_y_especiales(normalizado: str) -> None:
     """Controla si el nombre del solicitante contiene números o caracteres especiales
 
     Args:
-        normalizado (str): Es el nombre del solicitante no vacío y sin espacios en blanco
+        normalizado (str): Es el nombre del solicitante no vacío y sin espacios
+            en blanco
 
     Raises:
-        SolicitanteInvalido:Indica que es un solicitante inválido por tener dígitos o caracteres epeciales
+        SolicitanteInvalido: Indica que es un solicitante inválido por tener
+            dígitos o caracteres especiales
     """
     if normalizado.isdigit():
         raise SolicitanteInvalido("Solicitante inválido.")
@@ -156,7 +159,9 @@ def validar_solicitante(solicitante: str) -> str:
     return normalizado
 
 
-def validar_unidad_conocida(unidad_id: str, inventario: dict[str, dict] | None = None) -> str:
+def validar_unidad_conocida(
+    unidad_id: str, inventario: dict[str, dict] | None = None
+) -> str:
     if inventario is None:
         inventario = obtener_inventario()
     if unidad_id not in inventario:
@@ -206,7 +211,9 @@ def _validar_orden_intervalo(inicio_dt: datetime, fin_dt: datetime) -> None:
         raise IntervaloInvalido("Intervalo inválido.")
 
 
-def _validar_limites_tiempo(inicio_dt: datetime, fin_dt: datetime, ahora_trunc: datetime) -> None:
+def _validar_limites_tiempo(
+    inicio_dt: datetime, fin_dt: datetime, ahora_trunc: datetime
+) -> None:
     if inicio_dt < ahora_trunc:
         raise LimiteExcedido("Límite excedido.")
     duracion = fin_dt - inicio_dt
@@ -284,10 +291,15 @@ def validar_solicitud_intervalo(
     _validar_orden_intervalo(inicio_dt, fin_dt)
     ahora_trunc = _obtener_ahora(contexto)
     _validar_limites_tiempo(inicio_dt, fin_dt, ahora_trunc)
-    _validar_sin_solapamiento(contexto.unidad_id, inicio_dt, fin_dt, contexto.reservas_activas)
+    _validar_sin_solapamiento(
+        contexto.unidad_id, inicio_dt, fin_dt, contexto.reservas_activas
+    )
     return inicio_dt, fin_dt
 
 
-def hay_solapamiento(a_inicio: datetime, a_fin: datetime, b_inicio: datetime, b_fin: datetime) -> bool:
-    """Intervalos semiabiertos [inicio, fin): solapan si a.inicio < b.fin y b.inicio < a.fin."""
+def hay_solapamiento(
+    a_inicio: datetime, a_fin: datetime, b_inicio: datetime, b_fin: datetime
+) -> bool:
+    """Intervalos semiabiertos [inicio, fin): solapan si a.inicio < b.fin
+    y b.inicio < a.fin."""
     return a_inicio < b_fin and b_inicio < a_fin

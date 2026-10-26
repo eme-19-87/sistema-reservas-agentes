@@ -1,4 +1,5 @@
 """Pruebas de handlers del State."""
+
 from __future__ import annotations
 
 from functools import partial
@@ -210,9 +211,7 @@ def test_doble_cancelacion_muestra_error(env_db_temporal, reloj_fijo):
 def test_filtros_por_unidad_y_estado(env_db_temporal, reloj_fijo):
     inicializar_bd()
     res_mic01_activa = _crear_reserva("MIC-01", "Ana", "10:00", "11:00", reloj_fijo)
-    res_mic01_cancelada = _crear_reserva(
-        "MIC-01", "Luis", "11:00", "12:00", reloj_fijo
-    )
+    res_mic01_cancelada = _crear_reserva("MIC-01", "Luis", "11:00", "12:00", reloj_fijo)
     res_mic02_activa = _crear_reserva("MIC-02", "Ana", "10:00", "11:00", reloj_fijo)
     servicio.cancelar_reserva(res_mic01_cancelada["id"], reloj=lambda: reloj_fijo)
 
