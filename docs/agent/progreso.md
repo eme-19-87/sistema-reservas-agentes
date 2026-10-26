@@ -1122,3 +1122,79 @@ ejecutaron en esta sesión con el intérprete de `.venv`.
 permisos, las adaptaciones con evidencia y las decisiones significativas con alternativas
 y consecuencias. Los enlaces y anclas resuelven, la suite completa sigue en 66/66 y el
 Paso 23 queda completado sin modificar código ni iniciar el Paso 24.
+
+## Paso 24 — Tres episodios de delegación
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Trabajo realizado:** Se completaron en `docs/agent/delegacion.md` los tres episodios
+obligatorios con el formato de `plan.md` §12 (objetivo y requisito → contexto e
+instrucción → resultado → decisión humana → evidencia), sustituyendo los tres marcadores
+«Pendiente»:
+
+1. **Episodio 1 — Regla de solapamiento con intervalos semiabiertos (Paso 6):** casos de
+   borde 10:00–11:00 → 11:00–12:00 permitido y → 10:30–11:30 rechazado; se anota que en la
+   sesión del Paso 6 no se ejecutó `pytest` (Python no disponible) y que la suite se ejecutó
+   después; se registra la limpieza de code smells de `dominio.py` como corrección
+   ocurrida.
+2. **Episodio 2 — Persistencia SQLite y verificación tras reinicio (Pasos 7, 9 y 21):**
+   repositorio, servicio, CLI, pruebas automáticas y verificación manual tras
+   `taskkill /T /F` + reinicio con el mismo `RESERVAS_DB`.
+3. **Episodio 3 — Interfaz Reflex con `State` delgado (Pasos 13 a 20):** presentación,
+   `State`, componentes, humo y comprobación en navegador; se registran como correcciones
+   que sí ocurrieron la limpieza de code smells de la capa de UI, la incidencia de dispatch
+   por frontend obsoleto (sin cambio de código) y la corrección `EBUSY`/hot-reload.
+
+Cada episodio enlaza commits, archivos y pruebas verificables. No se inventaron fallas ni
+correcciones: solo se anotaron las documentadas en este archivo.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .venv\Scripts\python.exe -m pytest -q
+.................................. (66 pruebas)     [100%]
+EXIT=0
+
+$ .venv\Scripts/python.exe -m pytest -q | head -c 300 | tr -cd '.' | wc -c
+66
+
+$ .venv\Scripts/ruff.exe check .
+Found 115 errors.
+RUFF_EXIT=1
+```
+
+```text
+$ git merge-base --is-ancestor <commit> <merge>   # comprobación de la evidencia enlazada
+OK f8eb24c is ancestor of 7c07260   (incluido en el merge 48d459a)
+OK e25bbd6 is ancestor of 7c07260
+OK ac6894b is ancestor of 5c79089
+OK 7eee5ad / c710b27 / 3fa362a / 4cfc567 / 4ea75c3 / e576d7f incluidos en merges
+$ test -f <archivo enlazado>        # 10 archivos enlazados: OK (tests/, reservas_ui/, docs/)
+$ git cat-file -t <commit>          # 19 commits enlazados: OK (commit)
+```
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4. Rama
+`features_documentacion`.
+
+**Resultado:** la suite completa pasa (66/66, código 0). `ruff check .` sigue con los 115
+hallazgos preexistentes (88 E501, 16 F401, 7 I001, 4 E731) documentados desde el Paso 19;
+este paso no modificó código Python, por lo que no añade hallazgos ni los corrige (la
+limpieza global corresponde al Paso 25). Todos los commits y archivos citados en los tres
+episodios existen y fueron comprobados.
+
+**Pasos no ejecutados:**
+
+- No se modificó `README.md`: sus líneas 14, 412, 530-531 y 620-623 aún dicen que los
+  episodios se completan en el Paso 24; corregir esa inconsistencia de documentación
+  corresponde a la convergencia final (Paso 25), que no se inició.
+- No se inició el Paso 25 ni el Paso 26; no se ejecutó `reflex run` ni flujo de navegador;
+  no se usó red; no se reinició `data/reservas.db`; no se hizo `git push`.
+- No se modificaron `spec.md`, `plan.md` ni archivos de código fuente.
+
+**Evidencia:**
+
+- `docs/agent/delegacion.md`: episodios 1, 2 y 3 completados con sus enlaces.
+- `specs/reservas-laboratorio/tasks.md`: Paso 24 marcado como completado.
+- `docs/agent/progreso.md`: este registro.

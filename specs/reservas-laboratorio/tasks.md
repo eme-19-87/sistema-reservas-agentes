@@ -90,7 +90,7 @@
 - \[x\] **Paso 23 — README: Preparación del agente y decisiones**
   - Sección 3: entorno y modelo, instrucciones, contexto, permisos, adaptaciones con enlaces a evidencia real.
   - Sección 4: decisiones significativas con motivos, alternativas y consecuencias (SQLite vs JSON, Reflex sin `rx.Model`, intervalos semiabiertos, handlers delgados).
-- \[ \] **Paso 24 — Tres episodios de delegación**
+- \[x\] **Paso 24 — Tres episodios de delegación**
   - Registrar en `docs/agent/delegacion.md` tres episodios **reales** (objetivo y requisito → contexto y extracto de instrucción → resultado del agente → decisión humana con motivo → enlace a commit, archivo o prueba).
   - Registrar correcciones solo si ocurrieron.
 - \[ \] **Paso 25 — Convergencia final del SDD**
