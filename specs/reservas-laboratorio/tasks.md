@@ -97,6 +97,18 @@
   - Releer [`spec.md`](http://spec.md) y [`plan.md`](http://plan.md); comparar con la implementación; corregir faltantes e inconsistencias (cambios de especificación en commits propios con motivo).
   - Ejecutar `pytest -q` y `ruff check .` desde un entorno limpio y registrar comandos, versiones y resultados.
   - Confirmar que no hay secretos, datos reales ni transcripciones completas en el repositorio.
-- \[ \] **Paso 26 — Entrega**
-  - Verificar que el repositorio sea accesible y revisar permisos; identificar rama y commit.
-  - Enviar el enlace a [`dgaifirst@gmail.com`](mailto:dgaifirst@gmail.com) con el asunto exacto «Challenge IA».
+
+## Fase 4— Fix De Interfaz, Pruebas y Documentación
+
+- \[ \] **Paso 26 — Fix Interfaz**
+  - Modifica la interfaz para que el formulario de reserva, el formulario de disponibilidad y la tabla en donde se ven las reservas y se pueden cancelar estén separadas en tres pestañas distintas.
+  - Que cada formulario tenga su propio elemento para mostrar los mensajes de éxito y error según sucedan.
+  - Los nuevos códigos no deben contener code smell.
+  - Dejar registro de lo realizado en los documentos [progreso.md](http://progreso.md) y [readme.md](http://readme.md). Aclarar que esta fue una decisión humana después de revisar el código.
+  - Confirmar la consistencia entre los archivos de documentación.
+- \[ \] **Paso 27 — Implementando Playwright Para Las Pruebas**
+  - Instala Playwright en el ambiente virtual .venv.
+  - Prepara los scripts de test en Playwright para cada uno de los requisitos verificables indicados en [spec.md](http://spec.md)
+  - No avances hasta no asegurarte que cada una de los tests pasó satisfactoriamente.
+  - Registrar todo lo realizado en los documentos [progreso.md](http://progreso.md) y [readme.md](http://readme.md). Aclarar que esta fue una decisión humana después de revisar el código.
+  - Confirma la consistencia entre los archivos de la documentación.
