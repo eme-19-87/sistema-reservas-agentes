@@ -476,5 +476,35 @@ Refactorización: consultar_disponibilidad dividida en _limpiar_mensajes_disp, _
 
 Refactorización adicional: _obtener_unidad_consulta y _aplicar_resultado_disp divididas en funciones auxiliares para eliminar Complex Method y Bumpy Road Ahead.
 
+Refactorización de duplicación: se agregó `_asignar_var` y `_asignar_vars_disp` en `State`; `_aplicar_error_disp`, `_aplicar_disponible_disp` y `_aplicar_no_disponible_disp` ahora delegan en un único helper de asignación, eliminando Code Duplication. Verificación: `pytest tests/test_ui_estado_disp.py tests/test_ui_estado.py -v` → 6 passed; suite completa → 51 passed.
+
+
 
 Intentando comprobar que github action contempla el smeel code código duplicado
+
+## Paso 16 - State: reservar
+
+Estado: completado.
+
+Fecha: 2026-10-25
+
+Trabajo realizado: Se agregó el handler `reservar` al `State`, que delega en `presentacion.reservar` y recarga la lista desde SQLite tras el éxito. En éxito se muestra el mensaje con el ID, se limpian `solicitante`, `inicio_res` y `fin_res` y se conserva `unidad_seleccionada`. En error se conserva el formulario y se muestra `mensaje_error`. Se extrajeron helpers (`_limpiar_campos_reserva`, `_recargar_reservas`, `_aplicar_exito_reserva`, `_aplicar_error_reserva`, `_aplicar_resultado_reserva`, `_mensaje_de_error`) para mantener handlers delgados y evitar duplicación. `on_load` reutiliza `_recargar_reservas` y `_limpiar_mensajes_disp` para no repetir la carga de la lista ni la limpieza de mensajes.
+
+Pruebas agregadas en `tests/test_ui_estado.py`: reserva válida actualiza la lista; solapamiento deja `mensaje_error` y la lista intacta; 11:00-12:00 aceptada tras 10:00-11:00; MIC-02 simultánea aceptada; solicitante vacío rechazado; formulario limpio tras éxito conservando unidad; formulario conservado tras error. El reloj se fija en las pruebas mediante `monkeypatch` sobre `estado.presentacion.reservar`, sin parchear variables de clase.
+
+Verificación ejecutada:
+```text
+.venv\Scripts\python.exe -m pytest tests/test_ui_estado.py -v
+8 passed in 3.42s
+
+.venv\Scripts\python.exe -m pytest tests/test_ui_estado.py tests/test_ui_estado_disp.py
+13 passed in 4.10s
+
+.venv\Scripts\python.exe -m pytest
+58 passed in 12.18s
+
+.venv\Scripts\python.exe -m ruff check reservas_ui\estado.py tests\test_ui_estado.py
+All checks passed!
+```
+
+Resultado: 8/8 pruebas del handler y 58/58 de la suite completa; ruff sin hallazgos en los archivos modificados.

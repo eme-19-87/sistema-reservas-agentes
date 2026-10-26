@@ -62,7 +62,7 @@
 - \[x\] **Paso 15 —** `State`**: consultar disponibilidad**
   - Handler delgado que delega en presentación.
   - Pruebas: disponible; ocupado; entrada inválida muestra `mensaje_error`; límites consecutivos disponibles; no crea reservas.
-- \[ \] **Paso 16 —** `State`**: reservar**
+- \[x\] **Paso 16 —** `State`**: reservar**
   - Handler que delega y recarga la lista; tras éxito limpia solicitante, inicio y fin (conserva la unidad) y tras un error conserva los valores ([`spec.md`](http://spec.md)).
   - Pruebas: reserva válida actualiza la lista; solapamiento deja `mensaje_error` y la lista intacta; 11:00–12:00 aceptada; MIC-02 simultánea aceptada; solicitante vacío rechazado; formulario limpio tras éxito y conservado tras error.
 - \[ \] **Paso 17 —** `State`**: cancelar y filtros**
