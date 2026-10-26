@@ -47,90 +47,117 @@ class State(rx.State):
         self.resultado_disp = ""
         self.conflictos_disp = []
 
-    def consultar_disponibilidad(self):
-        try:
-            object.__setattr__(self, "mensaje_error", "")
-        except Exception:
+    def _limpiar_mensajes_disp(self) -> None:
+        for attr, value in [
+            ("mensaje_error", ""),
+            ("mensaje_exito", ""),
+            ("resultado_disp", ""),
+            ("conflictos_disp", []),
+        ]:
             try:
-                self.mensaje_error = ""
+                object.__setattr__(self, attr, value)
             except Exception:
-                pass
+                try:
+                    setattr(self, attr, value)
+                except Exception:
+                    pass
+
+    def _unidad_desde_lista(self, unidades: list[Any]) -> str:
+        if not unidades:
+            return ""
+        unidad = unidades[0]
+        if isinstance(unidad, dict):
+            return unidad.get("id") or ""
+        return getattr(unidad, "id", "") or ""
+
+    def _obtener_unidad_consulta(self) -> str:
         try:
-            object.__setattr__(self, "mensaje_exito", "")
+            unidades = getattr(self, "unidades", None) or []
+            if getattr(self, "unidad_seleccionada", ""):
+                return self.unidad_seleccionada
+            unidad_id = self._unidad_desde_lista(unidades)
+            if unidad_id:
+                return unidad_id
         except Exception:
-            try:
-                self.mensaje_exito = ""
-            except Exception:
-                pass
+            pass
+        return getattr(self, "unidad_seleccionada", "") or ""
+
+    def _aplicar_error_disp(self, res: dict[str, Any]) -> None:
+        msg = res.get("mensaje", "")
         try:
-            object.__setattr__(self, "resultado_disp", "")
+            object.__setattr__(self, "mensaje_error", msg)
         except Exception:
-            try:
-                self.resultado_disp = ""
-            except Exception:
-                pass
+            pass
+        try:
+            object.__setattr__(self, "resultado_disp", msg)
+        except Exception:
+            pass
+        try:
+            object.__setattr__(self, "conflictos_disp", res.get("conflictos") or [])
+        except Exception:
+            pass
+
+    def _aplicar_disponible_disp(self, res: dict[str, Any]) -> None:
+        msg = res.get("mensaje", "Disponible.")
+        try:
+            object.__setattr__(self, "mensaje_exito", msg)
+        except Exception:
+            pass
+        try:
+            object.__setattr__(self, "resultado_disp", msg)
+        except Exception:
+            pass
         try:
             object.__setattr__(self, "conflictos_disp", [])
         except Exception:
-            try:
-                self.conflictos_disp = []
-            except Exception:
-                pass
+            pass
+
+    def _aplicar_no_disponible_disp(self, res: dict[str, Any]) -> None:
+        msg = res.get("mensaje", "No disponible.")
         try:
-            unidades = getattr(self, "unidades", None) or []
-            unidad = getattr(self, "unidad_seleccionada", "") or (unidades[0].get("id") if unidades else "")
+            object.__setattr__(self, "mensaje_error", msg)
         except Exception:
-            unidad = getattr(self, "unidad_seleccionada", "") or ""
+            pass
         try:
-            res = presentacion.consultar(servicio, unidad, getattr(self, "inicio_disp", ""), getattr(self, "fin_disp", ""))
-            if res.get("error"):
-                try:
-                    object.__setattr__(self, "mensaje_error", res.get("mensaje", ""))
-                except Exception:
-                    pass
-                try:
-                    object.__setattr__(self, "resultado_disp", res.get("mensaje", ""))
-                except Exception:
-                    pass
-                try:
-                    object.__setattr__(self, "conflictos_disp", res.get("conflictos") or [])
-                except Exception:
-                    pass
-                return
-            if res.get("disponible"):
-                try:
-                    object.__setattr__(self, "mensaje_exito", res.get("mensaje", "Disponible."))
-                except Exception:
-                    pass
-                try:
-                    object.__setattr__(self, "resultado_disp", res.get("mensaje", "Disponible."))
-                except Exception:
-                    pass
-                try:
-                    object.__setattr__(self, "conflictos_disp", [])
-                except Exception:
-                    pass
-                return
-            try:
-                object.__setattr__(self, "mensaje_error", res.get("mensaje", "No disponible."))
-            except Exception:
-                pass
-            try:
-                object.__setattr__(self, "resultado_disp", res.get("mensaje", "No disponible."))
-            except Exception:
-                pass
-            try:
-                object.__setattr__(self, "conflictos_disp", res.get("conflictos") or [])
-            except Exception:
-                pass
+            object.__setattr__(self, "resultado_disp", msg)
+        except Exception:
+            pass
+        try:
+            object.__setattr__(self, "conflictos_disp", res.get("conflictos") or [])
+        except Exception:
+            pass
+
+    def _aplicar_resultado_disp(self, res: dict[str, Any]) -> None:
+        if res.get("error"):
+            self._aplicar_error_disp(res)
+            return
+        if res.get("disponible"):
+            self._aplicar_disponible_disp(res)
+            return
+        self._aplicar_no_disponible_disp(res)
+
+    def consultar_disponibilidad(self):
+        self._limpiar_mensajes_disp()
+        unidad = self._obtener_unidad_consulta()
+        try:
+            res = presentacion.consultar(
+                servicio,
+                unidad,
+                getattr(self, "inicio_disp", ""),
+                getattr(self, "fin_disp", ""),
+            )
+            self._aplicar_resultado_disp(res)
         except Exception as exc:
             try:
                 msg = presentacion.mensaje_error(exc)
+            except Exception:
+                msg = str(exc)
+            try:
                 object.__setattr__(self, "mensaje_error", msg)
             except Exception:
                 pass
             try:
-                object.__setattr__(self, "resultado_disp", getattr(self, "mensaje_error", ""))
+                object.__setattr__(self, "resultado_disp", msg)
             except Exception:
                 pass
             try:

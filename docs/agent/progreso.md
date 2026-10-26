@@ -452,3 +452,26 @@ Verificación ejecutada:
 `
 
 Resultado: 1/1 prueba pasada.
+
+
+## Paso 15 — State: consultar disponibilidad
+
+Estado: completado.
+
+Fecha: 2026-10-25
+
+Trabajo realizado: Handler consultar_disponibilidad delgado que delega en presentacion.consultar. Pruebas de State para disponibilidad.
+
+Verificación ejecutada:
+`	ext
+.venv\Scripts\python.exe -m pytest tests/test_ui_estado_disp.py -v
+5 passed in 1.96s
+`
+
+Resultado: 5/5 pruebas pasadas.
+
+
+Refactorización: consultar_disponibilidad dividida en _limpiar_mensajes_disp, _obtener_unidad_consulta y _aplicar_resultado_disp para evitar Bumpy Road Ahead, Complex Method y Large Method.
+
+
+Refactorización adicional: _obtener_unidad_consulta y _aplicar_resultado_disp divididas en funciones auxiliares para eliminar Complex Method y Bumpy Road Ahead.
