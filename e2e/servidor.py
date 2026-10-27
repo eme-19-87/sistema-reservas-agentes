@@ -130,7 +130,9 @@ class ServidorReflex:
                         time.sleep(1.5)
                         return
             except (OSError, urllib.error.URLError):
-                pass
+                # Durante el arranque del servidor, errores de conexión son
+                # transitorios; reintentamos hasta agotar el tiempo límite.
+                continue
             time.sleep(0.5)
         raise RuntimeError(
             "El servidor de pruebas no respondió dentro del límite de 90 segundos.\n"
