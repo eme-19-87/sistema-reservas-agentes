@@ -1410,3 +1410,300 @@ sin listeners (procesos detenidos al cerrar)
   capturas `.evidencia/01-estructura.png` … `.evidencia/08-filtros.png` (ignoradas por Git).
 - `.evidencia/reservas-paso25.db` con las tres filas de la tabla anterior.
 - `docs/agent/progreso.md`: este registro.
+
+## Fix de interfaz: pestañas y mensajes por formulario (Paso 26)
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Motivo:** después de revisar el código de la interfaz, la persona responsable tomó la
+**decisión humana** de separar reserva, disponibilidad y reservas en tres pestañas y de
+dar a cada formulario sus propios mensajes de éxito y error. Antes, las tres zonas
+compartían una sola página vertical y un único par de mensajes, lo que mezclaba flujos y
+hacía que un mensaje apareciera fuera de contexto.
+
+**Entorno (aislado; no se tocó `data/reservas.db`):**
+
+- Base temporal `.evidencia/reservas-paso26.db` (carpeta ignorada por Git), vacía al
+  empezar; `RESERVAS_DB` apuntó a esa base.
+- `reflex run --frontend-port 3010 --backend-port 8010`; app en `App Running`.
+- Edge 156 headless con CDP en el puerto 9223 y perfil temporal propio.
+- Guion `.evidencia/verificar-paso26.js` (Node 24 + `ws` de `.web/node_modules`) que usa
+  clics reales mediante CDP, rellena los campos, lee los mensajes del DOM y guarda capturas.
+- Fechas usadas: `2026-11-05` (futuras respecto a la fecha del sistema).
+
+**Cambios implementados:**
+
+- `reservas_ui/componentes.py`: `rx.tabs.root`, `rx.tabs.list`, `rx.tabs.trigger` y
+  `rx.tabs.content` para las pestañas «Reservar», «Disponibilidad» y «Reservas»; ids
+  `tab-reserva`, `tab-disponibilidad`, `tab-reservas` y paneles `panel-reserva`,
+  `panel-disponibilidad`, `panel-reservas`.
+- `reservas_ui/estado.py`: `pestana_activa`, `cambiar_pestana`, pestaña inicial «Reservar»
+  y seis campos de mensaje independientes; los handlers de cada formulario solo limpian y
+  actualizan sus propios mensajes. Se eliminaron los campos globales `mensaje_exito`,
+  `mensaje_error` y `resultado_disp`, y el área global `zona_mensajes`.
+- `reservas_ui/reservas_ui.py`: la página usa `componentes.pestanas_interfaz()`.
+- `tests/test_ui_estado.py`: cubre pestañas, pestaña inicial, cambio válido/inválido,
+  aislamiento de mensajes y consulta inválida con mensaje propio.
+- `tests/test_ui_humo.py`: actualiza las vars declaradas y comprueba la estructura de las
+  tres pestañas y los seis mensajes.
+- Documentación: `spec.md` §14, RF-19 y criterios finales; `plan.md` §8 y §11; skill de
+  Reflex; `README.md`; referencias de campos en `tasks.md`.
+
+**Resultados esperados y observados (ejecución válida):**
+
+| Paso | Esperado | Observado |
+| --- | --- | --- |
+| Carga inicial | Tres pestañas, «Reservar» activa y solo `panel-reserva` visible | Triggers `tab-reserva`/`tab-disponibilidad`/`tab-reservas`; `tab-reserva` `aria-selected="true"`; visible solo `panel-reserva` |
+| Cambiar a Disponibilidad | Solo `panel-disponibilidad` visible | `tab-disponibilidad` activa; visible solo `panel-disponibilidad` |
+| Consultar MIC-01 10:00–11:00 | `Disponible.` en el mensaje de disponibilidad | `Disponible.` en `#mensaje-exito-disponibilidad` |
+| Reservar MIC-01 10:00–11:00 | Mensaje de reserva con ID | `Reserva creada con ID 1.` en `#mensaje-exito-reserva` |
+| Volver a Disponibilidad | El mensaje de disponibilidad se conserva | `Disponible.` |
+| Cancelar la reserva 1 | Mensaje de cancelación y fila `CANCELADA` sin botón | `Reserva cancelada.`; fila `1 … CANCELADA —`; `#cancelar-1` ya no existe |
+| Volver a Reservar | El mensaje de reserva se conserva | `Reserva creada con ID 1.` |
+| Reservar sin solicitante | Error propio del formulario de reserva | `Solicitante inválido.` en `#mensaje-error-reserva` |
+| Volver a Disponibilidad | El error de reserva no altera los mensajes de disponibilidad | `Disponible.` y `#mensaje-error-disponibilidad` vacío |
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4,
+Edge 156.0.4314.42, Node v24.11.1.
+
+**Verificación:**
+
+```text
+$ .venv/Scripts/python.exe -m pytest -q
+........................................................................ [100%]     # 72 pruebas, código 0
+$ .venv/Scripts/ruff.exe check .
+All checks passed!
+$ .venv/Scripts/ruff.exe format --check .
+29 files already formatted
+$ .venv/Scripts/reflex.exe compile
+Success: App compiled successfully
+$ node .evidencia/verificar-paso26.js
+# 10 comprobaciones de pestañas, mensajes y aislamiento sin errores
+```
+
+**Pasos no ejecutados o descartados:**
+
+- No hubo una sesión manual humana: los clics y el relleno se automatizaron con CDP, como
+  en los Pasos 20, 21 y 25. La decisión de producto (pestañas y mensajes por formulario)
+  sí fue humana.
+- Las primeras ejecuciones del guion se descartaron por causas del guion: `.click()`
+  sintético no disparó los tabs de Radix (se reemplazó por clics CDP reales) y el
+  almacenamiento local conservaba la pestaña de una sesión anterior (se limpió antes de
+  cargar). No fueron fallos de la aplicación.
+- No se reinició la aplicación para probar persistencia (ya verificada en el Paso 21), no
+  se probaron sesiones concurrentes y no se instaló Playwright (Paso 27).
+
+**Decisiones:**
+
+- Pestaña inicial «Reservar», por ser el flujo principal.
+- Mensajes por formulario en lugar de un área global; la cancelación muestra sus mensajes
+  dentro de la pestaña «Reservas».
+- Se mantiene el patrón de handlers delgados y se usa un `MensajesFormulario` inmutable para
+  nombrar los campos de cada formulario, sin duplicar la lógica de limpieza.
+- Los cambios de especificación, código, pruebas y documentación se separaron en commits
+  siguiendo la práctica del repositorio.
+
+**Evidencia:**
+
+- `.evidencia/verificar-paso26.js`, `.evidencia/observaciones-paso26.json` y las capturas
+  `.evidencia/paso26-01-reserva.png`, `.evidencia/paso26-02-disponibilidad.png` y
+  `.evidencia/paso26-03-reservas.png` (ignoradas por Git).
+- `.evidencia/reservas-paso26.db` con la reserva 1 cancelada.
+- `docs/agent/progreso.md`: este registro.
+
+## Pruebas de navegador con Playwright (Paso 27)
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Objetivo:** instalar Playwright en `.venv`, preparar una prueba de navegador por cada
+requisito verificable RF-01 a RF-19, ejecutar la suite hasta que todas pasaran y registrar
+la decisión y la evidencia en la documentación.
+
+**Decisión humana:** después de revisar el código y la cobertura existente, la persona
+responsable decidió incorporar Playwright como suite E2E independiente. La suite usa un
+servidor Reflex aislado y una base temporal para no interferir con `data/reservas.db`, y
+mantiene `python -m pytest` como suite unitaria rápida, sin navegador.
+
+**Trabajo realizado:**
+
+- Se instaló `playwright==1.64.1` en `.venv` y se descargó Chromium 156.0.8078.4 con
+  `playwright install chromium` (incluye Chromium headless y FFmpeg de Playwright).
+- Se añadió `playwright==1.64.1` a `requirements-dev.txt`.
+- Se creó `e2e/servidor.py`: administra un `reflex run` en 3020/8020, usa
+  `.evidencia/paso27/reservas-e2e.db`, reinicia el proceso para RF-11 y ejecuta la CLI
+  contra la misma base.
+- Se creó `e2e/pagina.py`: acciones de alto nivel para pestañas, selectores Radix,
+  formularios, tabla, cancelación, filtros y mensajes.
+- Se creó `e2e/conftest.py`: fixtures de servidor, Playwright, Chromium y página limpia por
+  requisito.
+- Se creó `e2e/test_requisitos.py` con 19 pruebas, una por RF:
+  RF-01 inventario; RF-02 alta activa; RF-03 solapamiento; RF-04 límites consecutivos;
+  RF-05 unidades simultáneas; RF-06 entradas inválidas; RF-07 cancelación conserva datos;
+  RF-08 libera el intervalo; RF-09 cancelada no bloquea; RF-10 mismas reglas; RF-11
+  persistencia tras reiniciar el servidor; RF-12 IDs no reutilizados; RF-13 `init-db` y
+  `--reset`; RF-14 frontera sin Reflex; RF-15 mensajes de error; RF-16 handlers y filtros;
+  RF-17 página raíz; RF-18 flujo completo; RF-19 tres pestañas y mensajes propios.
+- RF-13 combina la interfaz con la CLI y RF-14 complementa la navegación con un análisis
+  estático de imports; las demás pruebas usan Chromium headless y clics reales.
+- Se actualizaron `README.md`, `spec.md`, `plan.md` y `tasks.md` para reflejar la suite,
+  los comandos y la decisión humana, y se confirmó la consistencia entre esos documentos.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .\.venv\Scripts\playwright.exe install chromium
+# Chromium 156.0.8078.4 (Playwright chromium v1248) instalado
+$ .\.venv\Scripts\python.exe -m pytest e2e -v
+19 passed in 136.96s (0:02:16)
+$ .\.venv\Scripts\python.exe -m pytest -o addopts="" -q
+72 passed in 13.56s
+$ .\.venv\Scripts\python.exe -m ruff check .
+All checks passed!
+$ .\.venv\Scripts\python.exe -m ruff format --check .
+34 files already formatted
+$ .\.venv\Scripts\python.exe -m reflex compile
+Success: App compiled successfully in 3.668 seconds.
+```
+
+**Resultado real:** la suite E2E pasó completa (19/19) y la suite unitaria siguió en
+verde (72/72). No se modificó `data/reservas.db`: las pruebas usan una base temporal. El
+servidor de pruebas y Chromium quedaron detenidos al terminar. Los logs se guardaron en
+`.evidencia/paso27/` (ignorado por Git).
+
+**Pasos no ejecutados o descartados:**
+
+- No se hizo una nueva sesión manual con CDP: la verificación de navegador quedó
+  automatizada con Playwright, y la evidencia manual de los Pasos 20, 21, 25 y 26 se
+  conserva como historial.
+- No se probaron sesiones concurrentes ni concurrencia distribuida; siguen fuera del
+  alcance.
+- No se hizo `git push`; requiere aprobación humana.
+
+**Decisiones:**
+
+- La suite E2E vive fuera de `tests/` para que `python -m pytest` siga ejecutando solo las
+  pruebas unitarias rápidas; se ejecuta explícitamente con `python -m pytest e2e`.
+- Se usa una base temporal en `.evidencia/paso27/` y puertos 3020/8020 para aislar la
+  prueba de la aplicación local y de `data/reservas.db`.
+- Se instaló Chromium en lugar de depender de un navegador del sistema, para que la suite
+  sea reproducible con `playwright install chromium`.
+- RF-13 y RF-14 no tienen una superficie puramente web; se validan en la misma suite con
+  la CLI y un análisis estático, sin simular una cobertura de navegador que no existe.
+
+**Evidencia:**
+
+- `e2e/test_requisitos.py`, `e2e/conftest.py`, `e2e/pagina.py` y `e2e/servidor.py`.
+- `.evidencia/paso27/pytest-e2e.log`, `.evidencia/paso27/servidor.log` y
+  `.evidencia/paso27/reservas-e2e.db` (ignorados por Git).
+- `requirements-dev.txt`, `README.md`, `spec.md`, `plan.md` y `tasks.md`.
+- `docs/agent/progreso.md`: este registro.
+
+## Refactorización de duplicación en pruebas de validación
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Solicitud humana:** revisar las diez funciones de `tests/test_validaciones.py` que
+contenían el smell **Code Duplication** (`test_unidad_desconocida`,
+`test_solicitante_vacio`, `test_solicitante_solo_numeros`,
+`test_solicitante_solo_espacios`, `test_solicitante_con_caracteres_especiales`,
+`test_fecha_invalida_formato`, `test_fecha_invalida_con_offset`,
+`test_fecha_invalida_calendario`, `test_fecha_pasada` y
+`test_duracion_mayor_a_8_horas`) y eliminar la duplicación sin perder cobertura.
+
+**Decisión humana:** la refactorización fue una decisión humana tomada después de
+revisar el código y el reporte de smells. Se eligió una prueba parametrizada con casos
+nombrados, en lugar de mantener diez funciones con el mismo cuerpo o de crear una copia
+por cada combinación.
+
+**Trabajo realizado:**
+
+- Se añadió `_caso_invalido`, una fábrica que centraliza los datos comunes de unidad,
+  intervalo, solicitante y excepción esperada.
+- Se reemplazaron las diez funciones duplicadas por `test_solicitudes_invalidas`, con
+  diez casos parametrizados que conservan identificadores descriptivos para cada
+  escenario.
+- Se eliminó la copia restante de `test_fecha_pasada` y la de
+  `test_duracion_mayor_a_8_horas` después de incorporarlas a la parametrización, para no
+  ejecutar el mismo escenario dos veces.
+- No se modificó código de producción ni el comportamiento esperado de las validaciones.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py -v
+16 passed in 0.12s
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py --collect-only -q -o addopts=""
+16 tests collected in 0.03s
+$ .\.venv\Scripts\python.exe -m pytest -o addopts="" -q
+72 passed in 10.83s
+$ .\.venv\Scripts\python.exe -m ruff check .
+All checks passed!
+$ .\.venv\Scripts\python.exe -m ruff format --check .
+34 files already formatted
+```
+
+**Resultado real:** la cobertura de los diez escenarios se conserva en una sola prueba
+parametrizada; los 16 casos del archivo y las 72 pruebas totales pasan. No se modificó
+ningún archivo fuera de `tests/test_validaciones.py` y `docs/agent/progreso.md`.
+
+**Evidencia:**
+
+- `tests/test_validaciones.py`: `_caso_invalido`, `CASOS_INVALIDOS` y
+  `test_solicitudes_invalidas`.
+- `docs/agent/progreso.md`: este registro.
+
+## Reducción de argumentos en pruebas de validación
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Solicitud humana:** eliminar el smell **Excess Number Of Function Arguments** de
+`_caso_invalido` y `test_solicitudes_invalidas` sin perder los diez escenarios
+parametrizados.
+
+**Decisión humana:** la refactorización fue una decisión humana tomada después de
+revisar el reporte de smells. Se eligió agrupar los datos de cada escenario en un objeto
+inmutable y hacer que la prueba reciba un único argumento, en lugar de mantener cinco o
+seis parámetros sueltos o volver a duplicar los casos.
+
+**Trabajo realizado:**
+
+- Se eliminó `_caso_invalido`, que recibía seis argumentos.
+- Se añadió la dataclass inmutable `CasoInvalido` con los datos del escenario y valores
+  por defecto para unidad, intervalo y solicitante.
+- `test_solicitudes_invalidas` ahora recibe solo `caso: CasoInvalido` y conserva los diez
+  casos con sus identificadores descriptivos.
+- No se modificó código de producción ni el comportamiento esperado de las validaciones.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py -v
+16 passed in 0.23s
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py --collect-only -q -o addopts=""
+16 tests collected in 0.02s
+$ .\.venv\Scripts\python.exe -m pytest -o addopts="" -q
+72 passed in 13.80s
+$ .\.venv\Scripts\python.exe -m ruff check .
+All checks passed!
+$ .\.venv\Scripts\python.exe -m ruff format --check .
+34 files already formatted
+```
+
+**Resultado real:** `_caso_invalido` ya no existe y `test_solicitudes_invalidas` recibe
+un solo argumento; se conservan los diez escenarios y las 72 pruebas totales pasan. No se
+modificó ningún archivo fuera de `tests/test_validaciones.py` y
+`docs/agent/progreso.md`.
+
+**Evidencia:**
+
+- `tests/test_validaciones.py`: `CasoInvalido`, `CASOS_INVALIDOS` y
+  `test_solicitudes_invalidas`.
+- `docs/agent/progreso.md`: este registro.

@@ -9,9 +9,10 @@ El proyecto se desarrolla con **Spec-Driven Development (SDD)** y un agente de
 programación. La especificación es la fuente normativa; el plan técnico y el registro
 de progreso se mantienen en el repositorio.
 
-> **Estado:** aplicación implementada y verificada hasta la convergencia final
-> (Paso 25). El README tiene completas las cuatro secciones, incluidos los tres
-> episodios de delegación del Paso 24; solo queda la entrega (Paso 26).
+> **Estado:** aplicación implementada y verificada hasta las pruebas de navegador con
+> Playwright (Paso 27). El README tiene completas las cuatro secciones, incluidos los
+> tres episodios de delegación del Paso 24; la suite unitaria y la suite E2E están en
+> verde.
 
 **Documentos de referencia:** [especificación](specs/reservas-laboratorio/spec.md),
 [plan técnico](specs/reservas-laboratorio/plan.md),
@@ -99,8 +100,9 @@ La tabla completa de requisitos está en
 [`spec.md`](specs/reservas-laboratorio/spec.md#17-requisitos-verificables); el detalle
 de los criterios de aceptación finales está en
 [`spec.md`](specs/reservas-laboratorio/spec.md#20-criterios-de-aceptación-finales). El
-estado actual es **68 pruebas automatizadas aprobadas**; el flujo completo de navegador
-y la persistencia se verificaron por separado.
+estado actual es **72 pruebas unitarias y 19 pruebas de navegador aprobadas**. La suite
+`e2e/test_requisitos.py` recorre RF-01 a RF-19 con Playwright; RF-13 y RF-14 combinan la
+interfaz con la CLI y un análisis estático, respectivamente.
 
 | ID | Requisito | Evidencia principal |
 | --- | --- | --- |
@@ -114,14 +116,15 @@ y la persistencia se verificaron por separado.
 | RF-08 | La cancelación libera el intervalo | `tests/test_cancelacion.py` |
 | RF-09 | Una cancelada no bloquea la disponibilidad | `tests/test_disponibilidad.py` |
 | RF-10 | Disponibilidad y reserva comparten reglas | `tests/test_disponibilidad.py` |
-| RF-11 | Activas y canceladas persisten al reabrir | `tests/test_persistencia.py` y `docs/agent/verificacion-persistencia.md` |
+| RF-11 | Activas y canceladas persisten al reabrir | `tests/test_persistencia.py`, `e2e/test_requisitos.py` y `docs/agent/verificacion-persistencia.md` |
 | RF-12 | El ID de reserva no se reutiliza | `tests/test_repositorio.py` |
 | RF-13 | `init-db` es idempotente y `--reset` borra reservas | `tests/test_cli.py` |
 | RF-14 | El dominio no depende de Reflex | `tests/test_frontera_reflex.py` |
 | RF-15 | Cada error de dominio tiene su mensaje | `tests/test_ui_presentacion.py` |
 | RF-16 | Los handlers del `State` consultan, reservan, cancelan y filtran | `tests/test_ui_estado.py` y `tests/test_ui_estado_disp.py` |
 | RF-17 | La app Reflex se importa y registra la página `/` | `tests/test_ui_humo.py` |
-| RF-18 | El flujo completo funciona en el navegador | procedimiento manual en `docs/agent/progreso.md` |
+| RF-18 | El flujo completo funciona en el navegador | `e2e/test_requisitos.py` |
+| RF-19 | Tres pestañas con mensajes propios por formulario | `e2e/test_requisitos.py`, `tests/test_ui_humo.py` y `tests/test_ui_estado.py` |
 
 ### Criterios de aceptación
 
@@ -142,7 +145,7 @@ El producto se considera funcionalmente terminado cuando:
 - la interfaz Reflex permite consultar, reservar, cancelar y filtrar;
 - `init-db` carga el inventario de forma idempotente y `--reset` advierte que borra
   reservas;
-- las pruebas automáticas y el procedimiento manual de navegador quedan registrados;
+- las pruebas automáticas unitarias y de navegador quedan registradas;
 - el README tiene las cuatro secciones y los tres episodios de delegación enlazan
   evidencia real;
 - no hay errores bloqueantes conocidos, secretos ni datos reales en el repositorio.
@@ -193,16 +196,21 @@ la fuente de verdad**. Las reglas de negocio viven en `src/reservas/`, que no im
 │   ├── reservas_ui.py             # app y página /
 │   ├── estado.py                  # State y handlers delgados
 │   ├── presentacion.py            # funciones puras de presentación
-│   └── componentes.py             # formularios, tabla y mensajes
+│   └── componentes.py             # pestañas, formularios, tabla y mensajes
 ├── src/reservas/
 │   ├── dominio.py                 # reglas puras
 │   ├── servicio.py                # casos de uso
 │   ├── repositorio.py             # SQLite
 │   ├── inventario.py              # lectura del inventario
 │   └── cli.py                     # init-db
-└── tests/
+├── tests/
+│   ├── conftest.py
+│   └── test_*.py
+└── e2e/
     ├── conftest.py
-    └── test_*.py
+    ├── pagina.py                   # acciones de Playwright
+    ├── servidor.py                 # servidor Reflex aislado
+    └── test_requisitos.py          # RF-01 a RF-19
 ```
 
 También forman parte del repositorio el skill del agente
@@ -214,6 +222,7 @@ También forman parte del repositorio el skill del agente
 | Decisión | Motivo |
 | --- | --- |
 | Reflex 0.10.0 con una página `/` | Permite una interfaz web local en Python, sin mantener un frontend separado. |
+| Interfaz en tres pestañas con mensajes por formulario | Separa reserva, disponibilidad y reservas, y evita que un mensaje aparezca fuera de su flujo; fue una decisión humana tras revisar el código (Paso 26). |
 | SQLite mediante `sqlite3` de la biblioteca estándar, sin `rx.Model` | Ofrece persistencia transaccional sin acoplar el dominio ni las pruebas a Reflex. |
 | Núcleo en `src/reservas/` y UI en `reservas_ui/` | Mantiene las reglas independientes de la interfaz; la frontera se prueba automáticamente. |
 | `State` delgado y SQLite como fuente de verdad | Los handlers solo traducen eventos y recargan desde la base; no duplican reglas de negocio. |
@@ -233,15 +242,16 @@ Los motivos, alternativas y consecuencias se amplían en la sección 4 y en
 | Sistema operativo | Windows 10/11 es el entorno verificado; los comandos también se indican para macOS/Linux cuando difieren. |
 | Python | 3.11 o superior; probado con **3.13.11**. `pyproject.toml` exige `>=3.11`. |
 | Reflex | **0.10.0**, fijado en `requirements-dev.txt`. |
+| Playwright | **1.64.1**, fijado en `requirements-dev.txt`; Chromium **156.0.8078.4** instalado con `playwright install chromium`. |
 | pytest | **8.3.4**, fijado en `requirements-dev.txt`. |
 | ruff | **0.8.4**, fijado en `requirements-dev.txt`. |
 | Node/bun | Los gestiona Reflex; no se instalan a mano. |
 | Base de datos | SQLite incluido en Python; no hace falta un servidor de base de datos. |
-| Red | Solo para la instalación inicial de dependencias y del runtime de Reflex; después la app y las pruebas corren localmente. |
+| Red | Solo para la instalación inicial de dependencias, del runtime de Reflex y del navegador de Playwright; después la app y las pruebas corren localmente. |
 
 La instalación inicial necesita red porque Reflex descarga su runtime de frontend
-(Node/bun y paquetes JavaScript). Una vez compilada la aplicación, el uso normal no
-depende de servicios externos.
+(Node/bun y paquetes JavaScript) y Playwright descarga Chromium. Una vez compilada la
+aplicación y descargado el navegador, el uso normal no depende de servicios externos.
 
 ### Instalación
 
@@ -257,6 +267,7 @@ python -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
 python -m pip install -e .
+playwright install chromium
 
 python -m reservas init-db
 ```
@@ -329,12 +340,17 @@ python -m pytest
 # Ejecutar solo la prueba de persistencia
 python -m pytest tests/test_persistencia.py
 
+# Ejecutar las 19 pruebas de navegador con Playwright
+python -m pytest e2e
+
 # Revisar estilo y errores estáticos
 ruff check .
 ```
 
-La suite usa bases temporales y un reloj fijo; no necesita red, servidor Reflex ni
-navegador. El flujo completo de navegador es un procedimiento manual.
+La suite unitaria usa bases temporales y un reloj fijo; no necesita red, servidor Reflex ni
+navegador. La suite `e2e` levanta un servidor Reflex aislado en los puertos 3020/8020, usa
+una base temporal en `.evidencia/paso27/` y ejecuta Chromium en modo headless. Requiere
+haber instalado el navegador con `playwright install chromium`.
 
 ### Ejemplo de entrada y salida
 
@@ -396,21 +412,22 @@ queda libre para una nueva reserva.
 
 ### Estado de verificación
 
-- Suite automatizada: **68 pruebas aprobadas** con `python -m pytest`.
-- Flujo de navegador: verificado con resultados esperados y observados en
-  `docs/agent/progreso.md` (Paso 20).
-- Persistencia: reserva activa y cancelada recuperadas después de detener y reiniciar
-  `reflex run`; evidencia en `docs/agent/verificacion-persistencia.md` (Paso 21).
-- `ruff check .` y `ruff format --check .` **sin hallazgos** desde la convergencia final
-  (Paso 25); los hallazgos preexistentes de estilo se corrigieron sin cambiar el
+- Suite unitaria: **72 pruebas aprobadas** con `python -m pytest`.
+- Suite de navegador: **19 pruebas aprobadas** con `python -m pytest e2e`, una por RF,
+  ejecutadas con Playwright 1.64.1 y Chromium 156.0.8078.4 en modo headless.
+- Flujo de navegador y persistencia: automatizados en `e2e/test_requisitos.py`; RF-11
+  reinicia el servidor y comprueba una reserva activa y otra cancelada. La evidencia
+  manual anterior permanece en `docs/agent/progreso.md` (Pasos 20, 21, 25 y 26).
+- `ruff check .` y `ruff format --check .` **sin hallazgos** desde el fix de interfaz
+  (Paso 26); los hallazgos preexistentes de estilo se corrigieron sin cambiar el
   comportamiento y la suite siguió en verde.
 
 ### Pendientes y limitaciones
 
-**Pendientes de entrega:**
+**Pendiente:**
 
-- ejecutar la entrega del challenge (Paso 26): verificar el repositorio, identificar rama
-  y commit y enviar el enlace.
+- no quedan tareas funcionales del alcance; los pasos posteriores del curso, si existen,
+  se registran en `specs/reservas-laboratorio/tasks.md`.
 
 **Fuera del alcance o limitaciones conocidas:**
 
@@ -421,9 +438,9 @@ queda libre para una nueva reserva.
 - no se modela concurrencia distribuida; la atomicidad protege las operaciones locales
   sobre SQLite;
 - no se aplican horarios de apertura, feriados ni zonas horarias;
-- el flujo completo de clics del navegador **no se automatiza**: las pruebas cubren
-  dominio, servicio, persistencia, presentación, handlers y humo de la app, y el flujo
-  de navegador se documenta como procedimiento manual con resultados observados;
+- el flujo completo de clics del navegador se automatiza con Playwright; las pruebas
+  unitarias siguen cubriendo dominio, servicio, persistencia, presentación, handlers y humo
+  de la app;
 - `--reset` borra el historial de forma irreversible;
 - la aplicación es local y de un solo usuario; no está pensada para despliegue de
   producción.
@@ -446,7 +463,7 @@ y en el [`progreso`](docs/agent/progreso.md).
 | Versión del modelo | No visible desde el entorno; la versión interna no se declara |
 | Sistema operativo y shell | Windows; PowerShell |
 | Repositorio | https://github.com/eme-19-87/sistema-reservas-agentes.git |
-| Rama de trabajo | `features_documentacion` |
+| Rama de trabajo | `fix_ui` |
 | Python | 3.13.11 en `.venv` |
 | Reflex | 0.10.0 |
 | pytest / ruff | 8.3.4 / 0.8.4 |
@@ -524,7 +541,7 @@ base de datos, no se hizo `git push` y no se ejecutaron comandos destructivos.
 | Persistencia tras reinicio | Se ejecutó la prueba automática y el procedimiento manual de reservar, cancelar, detener y volver a iniciar `reflex run`. | [`tests/test_persistencia.py`](tests/test_persistencia.py), [`verificacion-persistencia.md`](docs/agent/verificacion-persistencia.md) y commit `ac6894b`. |
 | Frontera Reflex | `src/reservas/` no importa `reflex`; la comprobación automática y la búsqueda de imports no encontraron dependencias. | [`tests/test_frontera_reflex.py`](tests/test_frontera_reflex.py), [`plan.md`](specs/reservas-laboratorio/plan.md). |
 | Skill `reflex-rules` | Se conserva como documento de reglas de la UI; no se asume carga automática por el arnés. | [`.claude/skills/reflex-rules/SKILL.md`](.claude/skills/reflex-rules/SKILL.md) y [`preparacion-agente.md`](docs/agent/preparacion-agente.md). |
-| Revisión humana | Se revisan `git diff`, pruebas, coincidencia con `spec.md` y, en la UI, la comprobación manual del navegador. | [`progreso.md`](docs/agent/progreso.md) (Pasos 20 y 21) y [`CLAUDE.md`](CLAUDE.md). |
+| Revisión humana | Se revisan `git diff`, pruebas, coincidencia con `spec.md` y, en la UI, la suite automatizada de navegador. | [`progreso.md`](docs/agent/progreso.md) (Pasos 20, 21 y 27), [`e2e/test_requisitos.py`](e2e/test_requisitos.py) y [`CLAUDE.md`](CLAUDE.md). |
 
 No se registran correcciones que no hayan ocurrido. Los tres episodios obligatorios
 están registrados en la sección 4.2; esta sección no los sustituye.
@@ -537,10 +554,10 @@ ejecutados. Cada tarea cerrada queda además en un commit y el protocolo de revi
 humana exige revisar el `git diff` y la salida de las pruebas antes de aceptar el
 resultado.
 
-Limitaciones conocidas: la versión interna del modelo no es visible; la comprobación de
-clics del navegador es manual y no se automatiza; el skill `reflex-rules` no se carga
-automáticamente como skill del arnés; y la instalación inicial requiere red para el
-runtime de Reflex.
+Limitaciones conocidas: la versión interna del modelo no es visible; la suite de
+navegador necesita Chromium instalado y un servidor local; el skill `reflex-rules` no se
+carga automáticamente como skill del arnés; y la instalación inicial requiere red para el
+runtime de Reflex y para descargar el navegador de Playwright.
 
 ## 4. Registro de decisiones y delegación
 
@@ -610,9 +627,46 @@ runtime de Reflex.
   la interfaz solicitada; un frontend JavaScript separado, descartado por el costo de
   mantener dos pilas.
 - **Consecuencias:** la primera ejecución requiere red para el runtime de frontend; la
-  comprobación de clics es manual; el CLI queda limitado a `init-db`.
+  comprobación de clics está automatizada con Playwright; el CLI queda limitado a
+  `init-db`.
 - **Evidencia:** [`reservas_ui/`](reservas_ui/), [`rxconfig.py`](rxconfig.py),
-  [`test_ui_humo.py`](tests/test_ui_humo.py) y la sección 2 de este README.
+  [`test_ui_humo.py`](tests/test_ui_humo.py), [`e2e/test_requisitos.py`](e2e/test_requisitos.py)
+  y la sección 2 de este README.
+
+#### Pestañas y mensajes por formulario (decisión humana del Paso 26)
+
+- **Motivo:** al revisar el código de la interfaz, la persona responsable observó que
+  disponibilidad, reserva y tabla compartían una sola página vertical y un único par de
+  mensajes. Eso mezclaba flujos y hacía que el mensaje de una operación apareciera fuera
+  de contexto. **La decisión humana fue separar la interfaz en tres pestañas y dar a cada
+  formulario sus propios mensajes de éxito y error.**
+- **Alternativas descartadas:** mantener las tres zonas con desplazamiento y mensajes
+  globales, descartado porque conserva el problema de contexto; usar modales para cada
+  formulario, descartado por añadir fricción y complejidad innecesaria.
+- **Consecuencias:** la interfaz usa `rx.tabs` controlado por `State.pestana_activa`; hay
+  seis vars de mensaje (reserva, disponibilidad y cancelación); la tabla de reservas
+  muestra los mensajes de cancelación; desaparece el área global `zona_mensajes`; los
+  handlers limpian solo los mensajes de su propio formulario.
+- **Evidencia:** [`componentes.py`](reservas_ui/componentes.py),
+  [`estado.py`](reservas_ui/estado.py),
+  [`test_ui_estado.py`](tests/test_ui_estado.py) y
+  [`test_ui_humo.py`](tests/test_ui_humo.py).
+
+#### Pruebas de navegador con Playwright (decisión humana del Paso 27)
+
+- **Motivo:** al revisar el código y la cobertura existente, la persona responsable decidió
+  automatizar el flujo completo de la interfaz y mantener separadas las pruebas unitarias
+  de las que necesitan servidor y navegador.
+- **Alternativas descartadas:** conservar solo la verificación manual con CDP, descartada
+  porque no es repetible ni forma parte de la suite; ejecutar todo con `pytest` por defecto,
+  descartado porque obligaría a levantar Reflex y Chromium incluso para pruebas de dominio.
+- **Consecuencias:** la suite E2E vive en `e2e/`, usa una base temporal y un servidor
+  aislado en 3020/8020, y se ejecuta con `python -m pytest e2e`; `python -m pytest` sigue
+  cubriendo las 72 pruebas unitarias. RF-13 y RF-14 se comprueban con la CLI y un análisis
+  estático dentro de la misma suite.
+- **Evidencia:** [`e2e/test_requisitos.py`](e2e/test_requisitos.py),
+  [`e2e/conftest.py`](e2e/conftest.py), [`requirements-dev.txt`](requirements-dev.txt) y
+  [`progreso.md`](docs/agent/progreso.md) (Paso 27).
 
 ### 4.2 Delegación
 

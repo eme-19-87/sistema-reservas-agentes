@@ -61,10 +61,10 @@
   - Pruebas (`test_ui_estado.py`): `on_load` carga 5 unidades y las reservas existentes en BD temporal.
 - \[x\] **Paso 15 —** `State`**: consultar disponibilidad**
   - Handler delgado que delega en presentación.
-  - Pruebas: disponible; ocupado; entrada inválida muestra `mensaje_error`; límites consecutivos disponibles; no crea reservas.
+  - Pruebas: disponible; ocupado; entrada inválida muestra `mensaje_error_disponibilidad`; límites consecutivos disponibles; no crea reservas.
 - \[x\] **Paso 16 —** `State`**: reservar**
   - Handler que delega y recarga la lista; tras éxito limpia solicitante, inicio y fin (conserva la unidad) y tras un error conserva los valores ([`spec.md`](http://spec.md)).
-  - Pruebas: reserva válida actualiza la lista; solapamiento deja `mensaje_error` y la lista intacta; 11:00–12:00 aceptada; MIC-02 simultánea aceptada; solicitante vacío rechazado; formulario limpio tras éxito y conservado tras error.
+  - Pruebas: reserva válida actualiza la lista; solapamiento deja `mensaje_error_reserva` y la lista intacta; 11:00–12:00 aceptada; MIC-02 simultánea aceptada; solicitante vacío rechazado; formulario limpio tras éxito y conservado tras error.
 - \[x\] **Paso 17 —** `State`**: cancelar y filtros**
   - Handler de cancelación y filtros por unidad y estado.
   - Pruebas: la cancelada sigue en la lista como CANCELADA con sus datos; el horario queda libre; doble cancelación muestra error; filtros devuelven los subconjuntos esperados.
@@ -100,13 +100,13 @@
 
 ## Fase 4— Fix De Interfaz, Pruebas y Documentación
 
-- \[ \] **Paso 26 — Fix Interfaz**
+- \[x\] **Paso 26 — Fix Interfaz**
   - Modifica la interfaz para que el formulario de reserva, el formulario de disponibilidad y la tabla en donde se ven las reservas y se pueden cancelar estén separadas en tres pestañas distintas.
   - Que cada formulario tenga su propio elemento para mostrar los mensajes de éxito y error según sucedan.
   - Los nuevos códigos no deben contener code smell.
   - Dejar registro de lo realizado en los documentos [progreso.md](http://progreso.md) y [readme.md](http://readme.md). Aclarar que esta fue una decisión humana después de revisar el código.
   - Confirmar la consistencia entre los archivos de documentación.
-- \[ \] **Paso 27 — Implementando Playwright Para Las Pruebas**
+- \[x\] **Paso 27 — Implementando Playwright Para Las Pruebas**
   - Instala Playwright en el ambiente virtual .venv.
   - Prepara los scripts de test en Playwright para cada uno de los requisitos verificables indicados en [spec.md](http://spec.md)
   - No avances hasta no asegurarte que cada una de los tests pasó satisfactoriamente.

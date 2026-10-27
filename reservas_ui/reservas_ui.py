@@ -7,7 +7,7 @@ from reservas_ui.estado import State
 
 
 def index() -> rx.Component:
-    """Página principal con las tres zonas de la interfaz."""
+    """Página principal con la interfaz organizada por pestañas."""
     return rx.center(
         rx.vstack(
             rx.heading(
@@ -20,10 +20,7 @@ def index() -> rx.Component:
                 color="gray",
                 id="subtitulo-pagina",
             ),
-            componentes.zona_mensajes(),
-            componentes.zona_disponibilidad(),
-            componentes.zona_reserva(),
-            componentes.zona_reservas(),
+            componentes.pestanas_interfaz(),
             align="start",
             max_width="1000px",
             spacing="5",

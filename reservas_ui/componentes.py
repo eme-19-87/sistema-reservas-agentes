@@ -6,7 +6,12 @@ from typing import Any
 
 import reflex as rx
 
-from reservas_ui.estado import State
+from reservas_ui.estado import (
+    PESTANA_DISPONIBILIDAD,
+    PESTANA_RESERVA,
+    PESTANA_RESERVAS,
+    State,
+)
 
 
 def _campo(etiqueta: str, id_control: str, control: rx.Component) -> rx.Component:
@@ -96,32 +101,58 @@ def _conflicto(conflicto: rx.Var[dict[str, Any]]) -> rx.Component:
     )
 
 
-def _resultado_disponibilidad() -> rx.Component:
-    return rx.cond(
-        State.resultado_disp != "",
-        rx.vstack(
+def _mensajes_formulario(
+    prefijo: str,
+    exito: rx.Var[str],
+    error: rx.Var[str],
+) -> rx.Component:
+    """Muestra los mensajes propios de un formulario."""
+    return rx.vstack(
+        rx.cond(
+            exito != "",
             rx.callout(
-                State.resultado_disp,
-                color_scheme=rx.cond(State.mensaje_error != "", "red", "green"),
-                id="resultado-disponibilidad",
+                exito,
+                color_scheme="green",
+                id=f"mensaje-exito-{prefijo}",
             ),
-            rx.cond(
-                State.conflictos_disp.length() > 0,
-                rx.vstack(
-                    rx.text("Conflictos detectados", size="2", weight="bold"),
-                    rx.foreach(State.conflictos_disp, _conflicto),
-                    align="start",
-                    id="conflictos-disponibilidad",
-                    spacing="1",
-                    width="100%",
-                ),
-                rx.fragment(),
-            ),
-            align="start",
-            spacing="2",
-            width="100%",
+            rx.fragment(),
         ),
-        rx.fragment(),
+        rx.cond(
+            error != "",
+            rx.callout(
+                error,
+                color_scheme="red",
+                id=f"mensaje-error-{prefijo}",
+            ),
+            rx.fragment(),
+        ),
+        spacing="2",
+        width="100%",
+    )
+
+
+def _resultado_disponibilidad() -> rx.Component:
+    return rx.vstack(
+        _mensajes_formulario(
+            "disponibilidad",
+            State.mensaje_exito_disponibilidad,
+            State.mensaje_error_disponibilidad,
+        ),
+        rx.cond(
+            State.conflictos_disp.length() > 0,
+            rx.vstack(
+                rx.text("Conflictos detectados", size="2", weight="bold"),
+                rx.foreach(State.conflictos_disp, _conflicto),
+                align="start",
+                id="conflictos-disponibilidad",
+                spacing="1",
+                width="100%",
+            ),
+            rx.fragment(),
+        ),
+        align="start",
+        spacing="2",
+        width="100%",
     )
 
 
@@ -180,36 +211,6 @@ def _tabla_reservas() -> rx.Component:
             id="tabla-reservas",
             width="100%",
         ),
-    )
-
-
-def zona_mensajes() -> rx.Component:
-    """Muestra los mensajes de las operaciones que no son de disponibilidad."""
-    return rx.cond(
-        State.resultado_disp == "",
-        rx.vstack(
-            rx.cond(
-                State.mensaje_exito != "",
-                rx.callout(
-                    State.mensaje_exito,
-                    color_scheme="green",
-                    id="mensaje-exito",
-                ),
-                rx.fragment(),
-            ),
-            rx.cond(
-                State.mensaje_error != "",
-                rx.callout(
-                    State.mensaje_error,
-                    color_scheme="red",
-                    id="mensaje-error",
-                ),
-                rx.fragment(),
-            ),
-            spacing="2",
-            width="100%",
-        ),
-        rx.fragment(),
     )
 
 
@@ -325,6 +326,11 @@ def zona_reserva() -> rx.Component:
         "titulo-reserva",
         "Reservar",
         formulario,
+        _mensajes_formulario(
+            "reserva",
+            State.mensaje_exito_reserva,
+            State.mensaje_error_reserva,
+        ),
     )
 
 
@@ -369,5 +375,57 @@ def zona_reservas() -> rx.Component:
         "titulo-reservas",
         "Reservas",
         filtros,
+        _mensajes_formulario(
+            "cancelacion",
+            State.mensaje_exito_cancelacion,
+            State.mensaje_error_cancelacion,
+        ),
         _tabla_reservas(),
+    )
+
+
+def pestanas_interfaz() -> rx.Component:
+    """Distribuye los formularios y la tabla en tres pestañas."""
+    return rx.tabs.root(
+        rx.tabs.list(
+            rx.tabs.trigger(
+                "Reservar",
+                value=PESTANA_RESERVA,
+                id="tab-reserva",
+            ),
+            rx.tabs.trigger(
+                "Disponibilidad",
+                value=PESTANA_DISPONIBILIDAD,
+                id="tab-disponibilidad",
+            ),
+            rx.tabs.trigger(
+                "Reservas",
+                value=PESTANA_RESERVAS,
+                id="tab-reservas",
+            ),
+            id="lista-pestanas",
+            width="100%",
+        ),
+        rx.tabs.content(
+            zona_reserva(),
+            value=PESTANA_RESERVA,
+            id="panel-reserva",
+            padding_top="4",
+        ),
+        rx.tabs.content(
+            zona_disponibilidad(),
+            value=PESTANA_DISPONIBILIDAD,
+            id="panel-disponibilidad",
+            padding_top="4",
+        ),
+        rx.tabs.content(
+            zona_reservas(),
+            value=PESTANA_RESERVAS,
+            id="panel-reservas",
+            padding_top="4",
+        ),
+        value=State.pestana_activa,
+        on_change=State.cambiar_pestana,
+        id="pestanas-interfaz",
+        width="100%",
     )
