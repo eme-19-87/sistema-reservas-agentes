@@ -1601,3 +1601,59 @@ servidor de pruebas y Chromium quedaron detenidos al terminar. Los logs se guard
   `.evidencia/paso27/reservas-e2e.db` (ignorados por Git).
 - `requirements-dev.txt`, `README.md`, `spec.md`, `plan.md` y `tasks.md`.
 - `docs/agent/progreso.md`: este registro.
+
+## Refactorización de duplicación en pruebas de validación
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Solicitud humana:** revisar las diez funciones de `tests/test_validaciones.py` que
+contenían el smell **Code Duplication** (`test_unidad_desconocida`,
+`test_solicitante_vacio`, `test_solicitante_solo_numeros`,
+`test_solicitante_solo_espacios`, `test_solicitante_con_caracteres_especiales`,
+`test_fecha_invalida_formato`, `test_fecha_invalida_con_offset`,
+`test_fecha_invalida_calendario`, `test_fecha_pasada` y
+`test_duracion_mayor_a_8_horas`) y eliminar la duplicación sin perder cobertura.
+
+**Decisión humana:** la refactorización fue una decisión humana tomada después de
+revisar el código y el reporte de smells. Se eligió una prueba parametrizada con casos
+nombrados, en lugar de mantener diez funciones con el mismo cuerpo o de crear una copia
+por cada combinación.
+
+**Trabajo realizado:**
+
+- Se añadió `_caso_invalido`, una fábrica que centraliza los datos comunes de unidad,
+  intervalo, solicitante y excepción esperada.
+- Se reemplazaron las diez funciones duplicadas por `test_solicitudes_invalidas`, con
+  diez casos parametrizados que conservan identificadores descriptivos para cada
+  escenario.
+- Se eliminó la copia restante de `test_fecha_pasada` y la de
+  `test_duracion_mayor_a_8_horas` después de incorporarlas a la parametrización, para no
+  ejecutar el mismo escenario dos veces.
+- No se modificó código de producción ni el comportamiento esperado de las validaciones.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py -v
+16 passed in 0.12s
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py --collect-only -q -o addopts=""
+16 tests collected in 0.03s
+$ .\.venv\Scripts\python.exe -m pytest -o addopts="" -q
+72 passed in 10.83s
+$ .\.venv\Scripts\python.exe -m ruff check .
+All checks passed!
+$ .\.venv\Scripts\python.exe -m ruff format --check .
+34 files already formatted
+```
+
+**Resultado real:** la cobertura de los diez escenarios se conserva en una sola prueba
+parametrizada; los 16 casos del archivo y las 72 pruebas totales pasan. No se modificó
+ningún archivo fuera de `tests/test_validaciones.py` y `docs/agent/progreso.md`.
+
+**Evidencia:**
+
+- `tests/test_validaciones.py`: `_caso_invalido`, `CASOS_INVALIDOS` y
+  `test_solicitudes_invalidas`.
+- `docs/agent/progreso.md`: este registro.
