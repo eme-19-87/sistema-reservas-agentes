@@ -9,9 +9,10 @@ El proyecto se desarrolla con **Spec-Driven Development (SDD)** y un agente de
 programación. La especificación es la fuente normativa; el plan técnico y el registro
 de progreso se mantienen en el repositorio.
 
-> **Estado:** aplicación implementada y verificada hasta la convergencia final
-> (Paso 25). El README tiene completas las cuatro secciones, incluidos los tres
-> episodios de delegación del Paso 24; solo queda la entrega (Paso 26).
+> **Estado:** aplicación implementada y verificada hasta el fix de interfaz
+> (Paso 26). El README tiene completas las cuatro secciones, incluidos los tres
+> episodios de delegación del Paso 24; queda el Paso 27 (pruebas de navegador con
+> Playwright).
 
 **Documentos de referencia:** [especificación](specs/reservas-laboratorio/spec.md),
 [plan técnico](specs/reservas-laboratorio/plan.md),
@@ -99,8 +100,8 @@ La tabla completa de requisitos está en
 [`spec.md`](specs/reservas-laboratorio/spec.md#17-requisitos-verificables); el detalle
 de los criterios de aceptación finales está en
 [`spec.md`](specs/reservas-laboratorio/spec.md#20-criterios-de-aceptación-finales). El
-estado actual es **68 pruebas automatizadas aprobadas**; el flujo completo de navegador
-y la persistencia se verificaron por separado.
+estado actual es **72 pruebas automatizadas aprobadas**; el flujo de navegador con las
+tres pestañas y la persistencia se verificaron por separado de forma manual.
 
 | ID | Requisito | Evidencia principal |
 | --- | --- | --- |
@@ -122,6 +123,7 @@ y la persistencia se verificaron por separado.
 | RF-16 | Los handlers del `State` consultan, reservan, cancelan y filtran | `tests/test_ui_estado.py` y `tests/test_ui_estado_disp.py` |
 | RF-17 | La app Reflex se importa y registra la página `/` | `tests/test_ui_humo.py` |
 | RF-18 | El flujo completo funciona en el navegador | procedimiento manual en `docs/agent/progreso.md` |
+| RF-19 | Tres pestañas con mensajes propios por formulario | `tests/test_ui_humo.py`, `tests/test_ui_estado.py` y procedimiento manual |
 
 ### Criterios de aceptación
 
@@ -193,7 +195,7 @@ la fuente de verdad**. Las reglas de negocio viven en `src/reservas/`, que no im
 │   ├── reservas_ui.py             # app y página /
 │   ├── estado.py                  # State y handlers delgados
 │   ├── presentacion.py            # funciones puras de presentación
-│   └── componentes.py             # formularios, tabla y mensajes
+│   └── componentes.py             # pestañas, formularios, tabla y mensajes
 ├── src/reservas/
 │   ├── dominio.py                 # reglas puras
 │   ├── servicio.py                # casos de uso
@@ -214,6 +216,7 @@ También forman parte del repositorio el skill del agente
 | Decisión | Motivo |
 | --- | --- |
 | Reflex 0.10.0 con una página `/` | Permite una interfaz web local en Python, sin mantener un frontend separado. |
+| Interfaz en tres pestañas con mensajes por formulario | Separa reserva, disponibilidad y reservas, y evita que un mensaje aparezca fuera de su flujo; fue una decisión humana tras revisar el código (Paso 26). |
 | SQLite mediante `sqlite3` de la biblioteca estándar, sin `rx.Model` | Ofrece persistencia transaccional sin acoplar el dominio ni las pruebas a Reflex. |
 | Núcleo en `src/reservas/` y UI en `reservas_ui/` | Mantiene las reglas independientes de la interfaz; la frontera se prueba automáticamente. |
 | `State` delgado y SQLite como fuente de verdad | Los handlers solo traducen eventos y recargan desde la base; no duplican reglas de negocio. |
@@ -334,7 +337,8 @@ ruff check .
 ```
 
 La suite usa bases temporales y un reloj fijo; no necesita red, servidor Reflex ni
-navegador. El flujo completo de navegador es un procedimiento manual.
+navegador. El flujo completo de navegador es un procedimiento manual hasta que el Paso 27
+incorpore Playwright.
 
 ### Ejemplo de entrada y salida
 
@@ -396,21 +400,21 @@ queda libre para una nueva reserva.
 
 ### Estado de verificación
 
-- Suite automatizada: **68 pruebas aprobadas** con `python -m pytest`.
+- Suite automatizada: **72 pruebas aprobadas** con `python -m pytest`.
 - Flujo de navegador: verificado con resultados esperados y observados en
-  `docs/agent/progreso.md` (Paso 20).
+  `docs/agent/progreso.md` (Paso 20); las tres pestañas y los mensajes independientes se
+  verificaron en el Paso 26.
 - Persistencia: reserva activa y cancelada recuperadas después de detener y reiniciar
   `reflex run`; evidencia en `docs/agent/verificacion-persistencia.md` (Paso 21).
-- `ruff check .` y `ruff format --check .` **sin hallazgos** desde la convergencia final
-  (Paso 25); los hallazgos preexistentes de estilo se corrigieron sin cambiar el
+- `ruff check .` y `ruff format --check .` **sin hallazgos** desde el fix de interfaz
+  (Paso 26); los hallazgos preexistentes de estilo se corrigieron sin cambiar el
   comportamiento y la suite siguió en verde.
 
 ### Pendientes y limitaciones
 
-**Pendientes de entrega:**
+**Pendiente:**
 
-- ejecutar la entrega del challenge (Paso 26): verificar el repositorio, identificar rama
-  y commit y enviar el enlace.
+- implementar y ejecutar las pruebas de navegador con Playwright (Paso 27).
 
 **Fuera del alcance o limitaciones conocidas:**
 
@@ -421,9 +425,10 @@ queda libre para una nueva reserva.
 - no se modela concurrencia distribuida; la atomicidad protege las operaciones locales
   sobre SQLite;
 - no se aplican horarios de apertura, feriados ni zonas horarias;
-- el flujo completo de clics del navegador **no se automatiza**: las pruebas cubren
-  dominio, servicio, persistencia, presentación, handlers y humo de la app, y el flujo
-  de navegador se documenta como procedimiento manual con resultados observados;
+- el flujo completo de clics del navegador **no se automatiza todavía**: las pruebas
+  cubren dominio, servicio, persistencia, presentación, handlers y humo de la app; el
+  flujo de navegador se documenta como procedimiento manual con resultados observados y
+  el Paso 27 lo automatizará con Playwright;
 - `--reset` borra el historial de forma irreversible;
 - la aplicación es local y de un solo usuario; no está pensada para despliegue de
   producción.
@@ -613,6 +618,25 @@ runtime de Reflex.
   comprobación de clics es manual; el CLI queda limitado a `init-db`.
 - **Evidencia:** [`reservas_ui/`](reservas_ui/), [`rxconfig.py`](rxconfig.py),
   [`test_ui_humo.py`](tests/test_ui_humo.py) y la sección 2 de este README.
+
+#### Pestañas y mensajes por formulario (decisión humana del Paso 26)
+
+- **Motivo:** al revisar el código de la interfaz, la persona responsable observó que
+  disponibilidad, reserva y tabla compartían una sola página vertical y un único par de
+  mensajes. Eso mezclaba flujos y hacía que el mensaje de una operación apareciera fuera
+  de contexto. **La decisión humana fue separar la interfaz en tres pestañas y dar a cada
+  formulario sus propios mensajes de éxito y error.**
+- **Alternativas descartadas:** mantener las tres zonas con desplazamiento y mensajes
+  globales, descartado porque conserva el problema de contexto; usar modales para cada
+  formulario, descartado por añadir fricción y complejidad innecesaria.
+- **Consecuencias:** la interfaz usa `rx.tabs` controlado por `State.pestana_activa`; hay
+  seis vars de mensaje (reserva, disponibilidad y cancelación); la tabla de reservas
+  muestra los mensajes de cancelación; desaparece el área global `zona_mensajes`; los
+  handlers limpian solo los mensajes de su propio formulario.
+- **Evidencia:** [`componentes.py`](reservas_ui/componentes.py),
+  [`estado.py`](reservas_ui/estado.py),
+  [`test_ui_estado.py`](tests/test_ui_estado.py) y
+  [`test_ui_humo.py`](tests/test_ui_humo.py).
 
 ### 4.2 Delegación
 

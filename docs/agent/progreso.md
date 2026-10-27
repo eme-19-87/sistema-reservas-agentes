@@ -1410,3 +1410,105 @@ sin listeners (procesos detenidos al cerrar)
   capturas `.evidencia/01-estructura.png` … `.evidencia/08-filtros.png` (ignoradas por Git).
 - `.evidencia/reservas-paso25.db` con las tres filas de la tabla anterior.
 - `docs/agent/progreso.md`: este registro.
+
+## Fix de interfaz: pestañas y mensajes por formulario (Paso 26)
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Motivo:** después de revisar el código de la interfaz, la persona responsable tomó la
+**decisión humana** de separar reserva, disponibilidad y reservas en tres pestañas y de
+dar a cada formulario sus propios mensajes de éxito y error. Antes, las tres zonas
+compartían una sola página vertical y un único par de mensajes, lo que mezclaba flujos y
+hacía que un mensaje apareciera fuera de contexto.
+
+**Entorno (aislado; no se tocó `data/reservas.db`):**
+
+- Base temporal `.evidencia/reservas-paso26.db` (carpeta ignorada por Git), vacía al
+  empezar; `RESERVAS_DB` apuntó a esa base.
+- `reflex run --frontend-port 3010 --backend-port 8010`; app en `App Running`.
+- Edge 156 headless con CDP en el puerto 9223 y perfil temporal propio.
+- Guion `.evidencia/verificar-paso26.js` (Node 24 + `ws` de `.web/node_modules`) que usa
+  clics reales mediante CDP, rellena los campos, lee los mensajes del DOM y guarda capturas.
+- Fechas usadas: `2026-11-05` (futuras respecto a la fecha del sistema).
+
+**Cambios implementados:**
+
+- `reservas_ui/componentes.py`: `rx.tabs.root`, `rx.tabs.list`, `rx.tabs.trigger` y
+  `rx.tabs.content` para las pestañas «Reservar», «Disponibilidad» y «Reservas»; ids
+  `tab-reserva`, `tab-disponibilidad`, `tab-reservas` y paneles `panel-reserva`,
+  `panel-disponibilidad`, `panel-reservas`.
+- `reservas_ui/estado.py`: `pestana_activa`, `cambiar_pestana`, pestaña inicial «Reservar»
+  y seis campos de mensaje independientes; los handlers de cada formulario solo limpian y
+  actualizan sus propios mensajes. Se eliminaron los campos globales `mensaje_exito`,
+  `mensaje_error` y `resultado_disp`, y el área global `zona_mensajes`.
+- `reservas_ui/reservas_ui.py`: la página usa `componentes.pestanas_interfaz()`.
+- `tests/test_ui_estado.py`: cubre pestañas, pestaña inicial, cambio válido/inválido,
+  aislamiento de mensajes y consulta inválida con mensaje propio.
+- `tests/test_ui_humo.py`: actualiza las vars declaradas y comprueba la estructura de las
+  tres pestañas y los seis mensajes.
+- Documentación: `spec.md` §14, RF-19 y criterios finales; `plan.md` §8 y §11; skill de
+  Reflex; `README.md`; referencias de campos en `tasks.md`.
+
+**Resultados esperados y observados (ejecución válida):**
+
+| Paso | Esperado | Observado |
+| --- | --- | --- |
+| Carga inicial | Tres pestañas, «Reservar» activa y solo `panel-reserva` visible | Triggers `tab-reserva`/`tab-disponibilidad`/`tab-reservas`; `tab-reserva` `aria-selected="true"`; visible solo `panel-reserva` |
+| Cambiar a Disponibilidad | Solo `panel-disponibilidad` visible | `tab-disponibilidad` activa; visible solo `panel-disponibilidad` |
+| Consultar MIC-01 10:00–11:00 | `Disponible.` en el mensaje de disponibilidad | `Disponible.` en `#mensaje-exito-disponibilidad` |
+| Reservar MIC-01 10:00–11:00 | Mensaje de reserva con ID | `Reserva creada con ID 1.` en `#mensaje-exito-reserva` |
+| Volver a Disponibilidad | El mensaje de disponibilidad se conserva | `Disponible.` |
+| Cancelar la reserva 1 | Mensaje de cancelación y fila `CANCELADA` sin botón | `Reserva cancelada.`; fila `1 … CANCELADA —`; `#cancelar-1` ya no existe |
+| Volver a Reservar | El mensaje de reserva se conserva | `Reserva creada con ID 1.` |
+| Reservar sin solicitante | Error propio del formulario de reserva | `Solicitante inválido.` en `#mensaje-error-reserva` |
+| Volver a Disponibilidad | El error de reserva no altera los mensajes de disponibilidad | `Disponible.` y `#mensaje-error-disponibilidad` vacío |
+
+**Versiones:** Python 3.13.11, Reflex 0.10.0, pytest 8.3.4, ruff 0.8.4,
+Edge 156.0.4314.42, Node v24.11.1.
+
+**Verificación:**
+
+```text
+$ .venv/Scripts/python.exe -m pytest -q
+........................................................................ [100%]     # 72 pruebas, código 0
+$ .venv/Scripts/ruff.exe check .
+All checks passed!
+$ .venv/Scripts/ruff.exe format --check .
+29 files already formatted
+$ .venv/Scripts/reflex.exe compile
+Success: App compiled successfully
+$ node .evidencia/verificar-paso26.js
+# 10 comprobaciones de pestañas, mensajes y aislamiento sin errores
+```
+
+**Pasos no ejecutados o descartados:**
+
+- No hubo una sesión manual humana: los clics y el relleno se automatizaron con CDP, como
+  en los Pasos 20, 21 y 25. La decisión de producto (pestañas y mensajes por formulario)
+  sí fue humana.
+- Las primeras ejecuciones del guion se descartaron por causas del guion: `.click()`
+  sintético no disparó los tabs de Radix (se reemplazó por clics CDP reales) y el
+  almacenamiento local conservaba la pestaña de una sesión anterior (se limpió antes de
+  cargar). No fueron fallos de la aplicación.
+- No se reinició la aplicación para probar persistencia (ya verificada en el Paso 21), no
+  se probaron sesiones concurrentes y no se instaló Playwright (Paso 27).
+
+**Decisiones:**
+
+- Pestaña inicial «Reservar», por ser el flujo principal.
+- Mensajes por formulario en lugar de un área global; la cancelación muestra sus mensajes
+  dentro de la pestaña «Reservas».
+- Se mantiene el patrón de handlers delgados y se usa un `MensajesFormulario` inmutable para
+  nombrar los campos de cada formulario, sin duplicar la lógica de limpieza.
+- Los cambios de especificación, código, pruebas y documentación se separaron en commits
+  siguiendo la práctica del repositorio.
+
+**Evidencia:**
+
+- `.evidencia/verificar-paso26.js`, `.evidencia/observaciones-paso26.json` y las capturas
+  `.evidencia/paso26-01-reserva.png`, `.evidencia/paso26-02-disponibilidad.png` y
+  `.evidencia/paso26-03-reservas.png` (ignoradas por Git).
+- `.evidencia/reservas-paso26.db` con la reserva 1 cancelada.
+- `docs/agent/progreso.md`: este registro.

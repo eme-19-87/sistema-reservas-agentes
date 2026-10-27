@@ -7,6 +7,7 @@ import importlib
 import reflex as rx
 from reflex.utils.format import format_route
 
+from reservas_ui import componentes
 from reservas_ui.estado import State
 
 VARS_DECLARADAS = frozenset(
@@ -21,9 +22,13 @@ VARS_DECLARADAS = frozenset(
         "fin_res",
         "filtro_unidad",
         "filtro_estado",
-        "mensaje_error",
-        "mensaje_exito",
-        "resultado_disp",
+        "pestana_activa",
+        "mensaje_exito_reserva",
+        "mensaje_error_reserva",
+        "mensaje_exito_disponibilidad",
+        "mensaje_error_disponibilidad",
+        "mensaje_exito_cancelacion",
+        "mensaje_error_cancelacion",
         "conflictos_disp",
     }
 )
@@ -53,3 +58,31 @@ def test_state_declara_todas_sus_vars() -> None:
 
     assert not faltantes, f"Faltan vars declaradas: {sorted(faltantes)}"
     assert not calculadas_faltantes, mensaje_calculadas
+
+
+def test_interfaz_tiene_pestanas_y_mensajes_por_formulario() -> None:
+    interfaz = str(componentes.pestanas_interfaz())
+    identificadores = (
+        "tab-reserva",
+        "tab-disponibilidad",
+        "tab-reservas",
+        "panel-reserva",
+        "panel-disponibilidad",
+        "panel-reservas",
+        "form-reserva",
+        "form-disponibilidad",
+        "mensaje-exito-reserva",
+        "mensaje-error-reserva",
+        "mensaje-exito-disponibilidad",
+        "mensaje-error-disponibilidad",
+        "mensaje-exito-cancelacion",
+        "mensaje-error-cancelacion",
+    )
+
+    faltantes = [
+        identificador
+        for identificador in identificadores
+        if identificador not in interfaz
+    ]
+
+    assert not faltantes, f"Faltan identificadores en la interfaz: {faltantes}"

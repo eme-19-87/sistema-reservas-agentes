@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 import reflex as rx
@@ -9,6 +10,28 @@ import reflex as rx
 from reservas import servicio
 from reservas.repositorio import inicializar_bd
 from reservas_ui import presentacion
+
+PESTANA_RESERVA = "reserva"
+PESTANA_DISPONIBILIDAD = "disponibilidad"
+PESTANA_RESERVAS = "reservas"
+PESTANAS = frozenset({PESTANA_RESERVA, PESTANA_DISPONIBILIDAD, PESTANA_RESERVAS})
+
+
+@dataclass(frozen=True)
+class MensajesFormulario:
+    """Nombres de los campos de mensaje de un formulario."""
+
+    exito: str
+    error: str
+
+
+MENSAJES_RESERVA = MensajesFormulario("mensaje_exito_reserva", "mensaje_error_reserva")
+MENSAJES_DISPONIBILIDAD = MensajesFormulario(
+    "mensaje_exito_disponibilidad", "mensaje_error_disponibilidad"
+)
+MENSAJES_CANCELACION = MensajesFormulario(
+    "mensaje_exito_cancelacion", "mensaje_error_cancelacion"
+)
 
 
 class State(rx.State):
@@ -22,9 +45,13 @@ class State(rx.State):
     fin_res: str = ""
     filtro_unidad: str = ""
     filtro_estado: str = ""
-    mensaje_error: str = ""
-    mensaje_exito: str = ""
-    resultado_disp: str = ""
+    pestana_activa: str = PESTANA_RESERVA
+    mensaje_exito_reserva: str = ""
+    mensaje_error_reserva: str = ""
+    mensaje_exito_disponibilidad: str = ""
+    mensaje_error_disponibilidad: str = ""
+    mensaje_exito_cancelacion: str = ""
+    mensaje_error_cancelacion: str = ""
     conflictos_disp: list[dict[str, Any]] = []
 
     @rx.var
@@ -45,7 +72,7 @@ class State(rx.State):
         except Exception:
             self.unidades = []
         self._recargar_reservas()
-        self._limpiar_mensajes_disp()
+        self._limpiar_todos_los_mensajes()
 
     def _asignar_var(self, attr: str, value: Any) -> None:
         try:
@@ -56,21 +83,36 @@ class State(rx.State):
             except Exception:
                 pass
 
-    def _limpiar_mensajes(self) -> None:
-        self._asignar_var("mensaje_error", "")
-        self._asignar_var("mensaje_exito", "")
+    def _limpiar_mensajes(self, campos: MensajesFormulario) -> None:
+        self._asignar_var(campos.exito, "")
+        self._asignar_var(campos.error, "")
 
-    def _limpiar_mensajes_disp(self) -> None:
-        self._limpiar_mensajes()
-        self._asignar_var("resultado_disp", "")
+    def _limpiar_todos_los_mensajes(self) -> None:
+        for campos in (
+            MENSAJES_RESERVA,
+            MENSAJES_DISPONIBILIDAD,
+            MENSAJES_CANCELACION,
+        ):
+            self._limpiar_mensajes(campos)
         self._asignar_var("conflictos_disp", [])
 
-    def _asignar_vars_disp(
-        self, campo_mensaje: str, msg: str, conflictos: list[Any]
+    def _mostrar_exito(self, campos: MensajesFormulario, mensaje: str) -> None:
+        self._asignar_var(campos.error, "")
+        self._asignar_var(campos.exito, mensaje)
+
+    def _mostrar_error(self, campos: MensajesFormulario, mensaje: str) -> None:
+        self._asignar_var(campos.exito, "")
+        self._asignar_var(campos.error, mensaje)
+
+    def _mostrar_exito_disponibilidad(self, mensaje: str) -> None:
+        self._mostrar_exito(MENSAJES_DISPONIBILIDAD, mensaje)
+        self._asignar_var("conflictos_disp", [])
+
+    def _mostrar_error_disponibilidad(
+        self, mensaje: str, conflictos: list[Any] | None = None
     ) -> None:
-        self._asignar_var(campo_mensaje, msg)
-        self._asignar_var("resultado_disp", msg)
-        self._asignar_var("conflictos_disp", conflictos)
+        self._mostrar_error(MENSAJES_DISPONIBILIDAD, mensaje)
+        self._asignar_var("conflictos_disp", conflictos or [])
 
     def _unidad_desde_lista(self, unidades: list[Any]) -> str:
         if not unidades:
@@ -93,16 +135,15 @@ class State(rx.State):
         return getattr(self, "unidad_seleccionada", "") or ""
 
     def _aplicar_error_disp(self, res: dict[str, Any]) -> None:
-        self._asignar_vars_disp(
-            "mensaje_error", res.get("mensaje", ""), res.get("conflictos") or []
+        self._mostrar_error_disponibilidad(
+            res.get("mensaje", ""), res.get("conflictos") or []
         )
 
     def _aplicar_disponible_disp(self, res: dict[str, Any]) -> None:
-        self._asignar_vars_disp("mensaje_exito", res.get("mensaje", "Disponible."), [])
+        self._mostrar_exito_disponibilidad(res.get("mensaje", "Disponible."))
 
     def _aplicar_no_disponible_disp(self, res: dict[str, Any]) -> None:
-        self._asignar_vars_disp(
-            "mensaje_error",
+        self._mostrar_error_disponibilidad(
             res.get("mensaje", "No disponible."),
             res.get("conflictos") or [],
         )
@@ -121,6 +162,11 @@ class State(rx.State):
             return presentacion.mensaje_error(exc)
         except Exception:
             return str(exc)
+
+    def cambiar_pestana(self, pestana: str) -> None:
+        if pestana not in PESTANAS:
+            return
+        self.pestana_activa = pestana
 
     def actualizar_unidad(self, valor: str) -> None:
         self.unidad_seleccionada = valor
@@ -141,7 +187,8 @@ class State(rx.State):
         self.fin_res = valor
 
     def consultar_disponibilidad(self):
-        self._limpiar_mensajes_disp()
+        self._limpiar_mensajes(MENSAJES_DISPONIBILIDAD)
+        self._asignar_var("conflictos_disp", [])
         unidad = self._obtener_unidad_consulta()
         try:
             res = presentacion.consultar(
@@ -152,7 +199,7 @@ class State(rx.State):
             )
             self._aplicar_resultado_disp(res)
         except Exception as exc:
-            self._asignar_vars_disp("mensaje_error", self._mensaje_de_error(exc), [])
+            self._mostrar_error_disponibilidad(self._mensaje_de_error(exc))
 
     def _limpiar_campos_reserva(self) -> None:
         for attr in ("solicitante", "inicio_res", "fin_res"):
@@ -168,37 +215,18 @@ class State(rx.State):
         except Exception:
             self.reservas = []
 
-    def _aplicar_exito_operacion(
-        self, res: dict[str, Any], mensaje_defecto: str
-    ) -> None:
-        self._asignar_var("mensaje_error", "")
-        self._asignar_var("mensaje_exito", res.get("mensaje", mensaje_defecto))
-        self._recargar_reservas()
-
-    def _aplicar_error_operacion(self, mensaje: str) -> None:
-        self._asignar_var("mensaje_exito", "")
-        self._asignar_var("mensaje_error", mensaje)
-
-    def _aplicar_resultado_operacion(
-        self,
-        res: dict[str, Any],
-        mensaje_exito_defecto: str,
-        mensaje_error_defecto: str,
-    ) -> bool:
-        if not res.get("ok"):
-            self._aplicar_error_operacion(res.get("mensaje", mensaje_error_defecto))
-            return False
-        self._aplicar_exito_operacion(res, mensaje_exito_defecto)
-        return True
-
     def _aplicar_resultado_reserva(self, res: dict[str, Any]) -> None:
-        if self._aplicar_resultado_operacion(
-            res, "Reserva creada.", "No se pudo crear la reserva."
-        ):
-            self._limpiar_campos_reserva()
+        if not res.get("ok"):
+            self._mostrar_error(
+                MENSAJES_RESERVA, res.get("mensaje", "No se pudo crear la reserva.")
+            )
+            return
+        self._mostrar_exito(MENSAJES_RESERVA, res.get("mensaje", "Reserva creada."))
+        self._recargar_reservas()
+        self._limpiar_campos_reserva()
 
     def reservar(self):
-        self._limpiar_mensajes_disp()
+        self._limpiar_mensajes(MENSAJES_RESERVA)
         unidad = self._obtener_unidad_consulta()
         try:
             res = presentacion.reservar(
@@ -209,26 +237,32 @@ class State(rx.State):
                 getattr(self, "fin_res", ""),
             )
         except Exception as exc:
-            self._aplicar_error_operacion(self._mensaje_de_error(exc))
+            self._mostrar_error(MENSAJES_RESERVA, self._mensaje_de_error(exc))
             return
         self._aplicar_resultado_reserva(res)
 
     def _aplicar_resultado_cancelacion(self, res: dict[str, Any]) -> None:
-        self._aplicar_resultado_operacion(
-            res, "Reserva cancelada.", "No se pudo cancelar la reserva."
+        if not res.get("ok"):
+            self._mostrar_error(
+                MENSAJES_CANCELACION,
+                res.get("mensaje", "No se pudo cancelar la reserva."),
+            )
+            return
+        self._mostrar_exito(
+            MENSAJES_CANCELACION, res.get("mensaje", "Reserva cancelada.")
         )
+        self._recargar_reservas()
 
     def cancelar(self, reserva_id: int):
-        self._limpiar_mensajes_disp()
+        self._limpiar_mensajes(MENSAJES_CANCELACION)
         try:
             res = presentacion.cancelar(servicio, reserva_id)
         except Exception as exc:
-            self._aplicar_error_operacion(self._mensaje_de_error(exc))
+            self._mostrar_error(MENSAJES_CANCELACION, self._mensaje_de_error(exc))
             return
         self._aplicar_resultado_cancelacion(res)
 
     def aplicar_filtros(self):
-        self._limpiar_mensajes()
         self._recargar_reservas()
 
     def actualizar_filtro_unidad(self, valor: str) -> None:

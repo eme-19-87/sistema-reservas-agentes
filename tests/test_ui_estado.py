@@ -27,6 +27,16 @@ def reloj_en_presentacion(monkeypatch: pytest.MonkeyPatch, reloj_fijo):
     )
 
 
+@pytest.fixture
+def reloj_en_consulta(monkeypatch: pytest.MonkeyPatch, reloj_fijo):
+    """Fija el reloj de la consulta de disponibilidad en el handler."""
+    monkeypatch.setattr(
+        estado.presentacion,
+        "consultar",
+        partial(estado.presentacion.consultar, reloj=lambda: reloj_fijo),
+    )
+
+
 def _state_reserva(
     unidad: str, solicitante: str, inicio: str, fin: str
 ) -> estado.State:
@@ -60,8 +70,8 @@ def test_reservar_valido_actualiza_lista(env_db_temporal, reloj_en_presentacion)
     inicializar_bd()
     st = _state_reserva("MIC-01", "Ana", *_rango("10:00", "11:00"))
     st.reservar()
-    assert st.mensaje_error == ""
-    assert "ID" in st.mensaje_exito
+    assert st.mensaje_error_reserva == ""
+    assert "ID" in st.mensaje_exito_reserva
     assert len(st.reservas) == 1
     assert st.reservas[0].get("unidad_id") == "MIC-01"
 
@@ -80,7 +90,7 @@ def test_reservar_solapamiento_deja_error_y_lista_intacta(
     st.solicitante = "Luis"
     st.inicio_res, st.fin_res = _rango("10:30", "11:30")
     st.reservar()
-    assert "Superposición" in st.mensaje_error
+    assert "Superposición" in st.mensaje_error_reserva
     assert len(st.reservas) == antes
 
 
@@ -93,7 +103,7 @@ def test_reservar_limites_consecutivos_aceptado(
     )
     st = _state_reserva("MIC-01", "Luis", *_rango("11:00", "12:00"))
     st.reservar()
-    assert st.mensaje_error == ""
+    assert st.mensaje_error_reserva == ""
     assert len(st.reservas) == 2
 
 
@@ -106,7 +116,7 @@ def test_reservar_mic02_simultanea_aceptada(
     )
     st = _state_reserva("MIC-02", "Luis", *_rango("10:00", "11:00"))
     st.reservar()
-    assert st.mensaje_error == ""
+    assert st.mensaje_error_reserva == ""
     assert len(st.reservas) == 2
 
 
@@ -114,7 +124,7 @@ def test_reservar_solicitante_vacio_rechazado(env_db_temporal, reloj_en_presenta
     inicializar_bd()
     st = _state_reserva("MIC-01", "", *_rango("10:00", "11:00"))
     st.reservar()
-    assert "Solicitante" in st.mensaje_error
+    assert "Solicitante" in st.mensaje_error_reserva
     assert st.reservas == []
 
 
@@ -137,7 +147,7 @@ def test_reservar_error_conserva_valores_del_formulario(
     inicio, fin = "2026-10-21T10:00", "2026-10-21T11:00"
     st = _state_reserva("MIC-01", "Ana", inicio, fin)
     st.reservar()
-    assert st.mensaje_error
+    assert st.mensaje_error_reserva
     assert st.solicitante == "Ana"
     assert st.inicio_res == inicio
     assert st.fin_res == fin
@@ -159,6 +169,59 @@ def test_handlers_de_campos_actualizan_el_estado():
     assert st.fin_res == "2026-10-23T13:00"
 
 
+def test_pestana_inicia_en_reserva_y_acepta_solo_pestanas_conocidas():
+    st = estado.State()
+    assert st.pestana_activa == estado.PESTANA_RESERVA
+
+    st.cambiar_pestana(estado.PESTANA_DISPONIBILIDAD)
+
+    assert st.pestana_activa == estado.PESTANA_DISPONIBILIDAD
+
+    st.cambiar_pestana("desconocida")
+
+    assert st.pestana_activa == estado.PESTANA_DISPONIBILIDAD
+
+
+def test_mensajes_de_cada_formulario_son_independientes(
+    env_db_temporal, reloj_en_presentacion, reloj_en_consulta
+):
+    inicializar_bd()
+    st = _state_reserva("MIC-01", "Ana", *_rango("10:00", "11:00"))
+    st.reservar()
+
+    exito_reserva = st.mensaje_exito_reserva
+    assert exito_reserva
+
+    st.inicio_disp, st.fin_disp = _rango("12:00", "13:00")
+    st.consultar_disponibilidad()
+
+    assert st.mensaje_exito_disponibilidad == "Disponible."
+    assert st.mensaje_error_disponibilidad == ""
+    assert st.mensaje_exito_reserva == exito_reserva
+
+    st.solicitante = ""
+    st.inicio_res, st.fin_res = _rango("14:00", "15:00")
+    st.reservar()
+
+    assert st.mensaje_error_reserva
+    assert st.mensaje_exito_disponibilidad == "Disponible."
+
+
+def test_consulta_invalida_usa_el_mensaje_de_disponibilidad(
+    env_db_temporal, reloj_en_consulta
+):
+    inicializar_bd()
+    st = estado.State()
+    st.unidad_seleccionada = "MIC-01"
+    st.inicio_disp = "2026-10-21T10:00"
+    st.fin_disp = "2026-10-21T11:00"
+
+    st.consultar_disponibilidad()
+
+    assert st.mensaje_error_disponibilidad
+    assert st.mensaje_error_reserva == ""
+
+
 def _crear_reserva(
     unidad: str, solicitante: str, inicio_hora: str, fin_hora: str, reloj_fijo
 ) -> dict:
@@ -174,7 +237,8 @@ def test_cancelar_conserva_fila_cancelada_con_datos(env_db_temporal, reloj_fijo)
     st = estado.State()
     st.on_load()
     st.cancelar(creada["id"])
-    assert st.mensaje_error == ""
+    assert st.mensaje_error_cancelacion == ""
+    assert st.mensaje_exito_cancelacion
     fila = next(r for r in st.reservas if r["id"] == creada["id"])
     assert fila["estado"] == "CANCELADA"
     assert fila["unidad_id"] == "MIC-01"
@@ -202,7 +266,7 @@ def test_doble_cancelacion_muestra_error(env_db_temporal, reloj_fijo):
     st.cancelar(creada["id"])
     antes = len(st.reservas)
     st.cancelar(creada["id"])
-    assert "ya cancelada" in st.mensaje_error.lower()
+    assert "ya cancelada" in st.mensaje_error_cancelacion.lower()
     assert len(st.reservas) == antes
     fila = next(r for r in st.reservas if r["id"] == creada["id"])
     assert fila["estado"] == "CANCELADA"

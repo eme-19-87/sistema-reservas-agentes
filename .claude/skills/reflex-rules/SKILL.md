@@ -53,9 +53,14 @@ class Estado(rx.State):
     solicitante: str = ""
     inicio: str = ""
     fin: str = ""
-    # mensajes y datos mostrados
-    mensaje_exito: str = ""
-    mensaje_error: str = ""
+    # pestaña y mensajes propios de cada formulario
+    pestana_activa: str = "reserva"
+    mensaje_exito_reserva: str = ""
+    mensaje_error_reserva: str = ""
+    mensaje_exito_disponibilidad: str = ""
+    mensaje_error_disponibilidad: str = ""
+    mensaje_exito_cancelacion: str = ""
+    mensaje_error_cancelacion: str = ""
     filas: list[dict[str, str]] = rx.field(default_factory=list)
 
 ```
@@ -66,18 +71,23 @@ class Estado(rx.State):
 
 - Un handler hace tres cosas: lee las vars del formulario, llama a una función de [`presentacion.py`](http://presentacion.py) y asigna el resultado a las vars. Nada más.
 - [`presentacion.py`](http://presentacion.py) contiene **funciones puras** que reciben el servicio y los datos de entrada y devuelven mensajes y filas listos para mostrar. Captura las excepciones de dominio y las traduce a mensajes en español.
-- Los errores de dominio se muestran como `mensaje_error`; nunca como trazas. Un error inesperado se registra en el log y se muestra un mensaje genérico.
+- Los errores de dominio se muestran en el mensaje de error del formulario correspondiente; nunca como trazas. Un error inesperado se registra en el log y se muestra un mensaje genérico.
+- Cada formulario tiene su propio par de mensajes; una operación no debe borrar ni reutilizar el mensaje de otro formulario.
 
 ```python
 def reservar(self) -> None:
     resultado = presentacion.reservar(
         servicio_por_defecto(), self.unidad, self.solicitante, self.inicio, self.fin
     )
-    self.mensaje_exito = resultado.mensaje_exito
-    self.mensaje_error = resultado.mensaje_error
-    self.filas = resultado.filas
-    if resultado.exito:  # spec §14: limpiar solicitante, inicio y fin; conservar unidad
+    if resultado["ok"]:
+        self.mensaje_exito_reserva = resultado["mensaje"]
+        self.mensaje_error_reserva = ""
+        self.filas = presentacion.listar_filas(servicio_por_defecto())
+        # spec §14: limpiar solicitante, inicio y fin; conservar unidad
         self.solicitante = self.inicio = self.fin = ""
+    else:
+        self.mensaje_error_reserva = resultado["mensaje"]
+        self.mensaje_exito_reserva = ""
 
 ```
 
@@ -90,10 +100,11 @@ def reservar(self) -> None:
 ### Componentes
 
 - Mantén componentes **pequeños, simples y con una sola responsabilidad** ([`componentes.py`](http://componentes.py)).
-- Una sola página (`/`) con tres zonas: disponibilidad, reservar y reservas.
+- Una sola página (`/`) con tres pestañas: reservar (activa por defecto), disponibilidad y reservas. Usa `rx.tabs` controlado por `State.pestana_activa`.
 - Usa `rx.foreach` y `rx.cond` para listas y condicionales sobre vars del `State`; no uses condicionales de Python sobre vars reactivas.
 - El botón «Cancelar» aparece solo en reservas `ACTIVA`; las canceladas permanecen visibles en la tabla.
-- Accesibilidad mínima: etiqueta asociada a cada campo, navegación por teclado y estados de foco visibles.
+- Cada formulario y la tabla de cancelación muestran sus propios mensajes de éxito y error; no existe un área global de mensajes.
+- Accesibilidad mínima: pestañas navegables por teclado, etiqueta asociada a cada campo, navegación por teclado y estados de foco visibles.
 - Estilos con las props de los componentes de Reflex; sin CSS personalizado salvo lo necesario para foco y legibilidad.
 
 ### Pruebas de la interfaz
@@ -116,7 +127,7 @@ reservas_ui/
 ├── reservas_ui.py     # rx.App, páginas y rutas
 ├── estado.py          # rx.State y handlers (delgados)
 ├── presentacion.py    # funciones puras: servicio → mensajes/filas
-└── componentes.py     # formulario, tabla, mensajes
+└── componentes.py     # pestañas, formularios, tabla y mensajes
 rxconfig.py            # app_name = "reservas_ui"
 tests/
 ├── test_ui_presentacion.py
