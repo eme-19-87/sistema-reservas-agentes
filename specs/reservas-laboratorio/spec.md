@@ -263,34 +263,40 @@ Cada fila muestra: ID, unidad, solicitante, inicio, fin y estado.
 
 ## 14. Interfaz web (Reflex)
 
-Una página principal (`/`) con tres zonas.
+Una página principal (`/`) con tres pestañas: «Reservar», «Disponibilidad» y «Reservas». La pestaña activa por defecto es «Reservar».
 
-### Zona de disponibilidad
+La separación en pestañas y los mensajes independientes por formulario son una **decisión humana** tomada después de revisar el código de la interfaz en el Paso 26: las tres zonas compartían una sola página vertical y un único par de mensajes, lo que mezclaba flujos y hacía que un mensaje apareciera fuera de contexto.
 
-- Selector de unidad, campo de inicio y campo de fin.
-- Botón «Consultar».
-- Muestra «Disponible», «No disponible» con detalle de conflictos, o el mensaje de error.
-
-### Zona de reserva
+### Pestaña «Reservar»
 
 - Selector de unidad, solicitante, inicio y fin.
 - Botón «Reservar».
+- Elementos propios para el mensaje de éxito y el de error de este formulario.
 - Éxito: muestra el ID asignado, actualiza la tabla y limpia solicitante, inicio y fin (conserva la unidad).
 - Error: muestra el mensaje y conserva los valores ingresados.
 
-### Zona de reservas
+### Pestaña «Disponibilidad»
+
+- Selector de unidad, campo de inicio y campo de fin.
+- Botón «Consultar».
+- Elementos propios para el mensaje de éxito y el de error de este formulario.
+- Muestra «Disponible» o «No disponible» con detalle de conflictos; los errores de validación usan su propio mensaje.
+
+### Pestaña «Reservas»
 
 - Tabla con ID, unidad, solicitante, inicio, fin y estado.
 - Filtros por unidad y estado.
 - Botón «Cancelar» únicamente en reservas activas; las canceladas permanecen visibles.
+- Elementos propios para el mensaje de éxito y el de error de la cancelación.
 
 ### Comportamiento general
 
 - Al cargar la página se leen unidades y reservas desde la base.
 - Cada operación que modifica datos recarga la lista desde la base.
+- Cada formulario conserva y muestra únicamente sus propios mensajes; una operación de un formulario no borra los mensajes de otro.
 - Los errores se muestran como mensajes en pantalla; nunca como trazas técnicas. Un error inesperado se registra en el log y se muestra un mensaje genérico.
 - Los campos de fecha usan el control `datetime-local` del navegador, que entrega el formato definido en la sección 8; el servicio valida igualmente el valor recibido.
-- Accesibilidad mínima: etiquetas asociadas a cada campo, navegación por teclado y estados de foco visibles.
+- Accesibilidad mínima: pestañas navegables por teclado, etiquetas asociadas a cada campo, navegación por teclado y estados de foco visibles.
 - Las reglas de negocio no se implementan en la interfaz: se delegan en el servicio.
 
 ---
@@ -339,6 +345,7 @@ Comando: `python -m reservas init-db [--reset] [--yes]`.
 | RF-16 | Los handlers del `State` consultan, reservan, cancelan y filtran correctamente | `test_ui_[estado.py](http://estado.py)`                                 |
 | RF-17 | La app Reflex se importa y registra la página `/`                              | `test_ui_[humo.py](http://humo.py)`                                     |
 | RF-18 | El flujo completo funciona en el navegador                                     | comprobación manual con resultados esperados y observados               |
+| RF-19 | Reserva, disponibilidad y reservas están en tres pestañas, con mensajes propios por formulario | `test_ui_[humo.py](http://humo.py)`, `test_ui_[estado.py](http://estado.py)` y comprobación manual |
 
 
 ---
@@ -374,6 +381,7 @@ El producto está funcionalmente terminado cuando:
 - una reserva cancelada libera el intervalo y no bloquea la disponibilidad;
 - las reservas activas y canceladas se recuperan tras detener y reiniciar la aplicación sin borrar datos;
 - la interfaz Reflex permite consultar, reservar, cancelar y listar con filtros;
+- la interfaz separa reserva, disponibilidad y reservas en tres pestañas, y cada formulario muestra sus propios mensajes de éxito y error;
 - `init-db` carga el inventario de forma idempotente y `--reset` advierte que borra reservas;
 - las pruebas automáticas (dominio, servicio, persistencia, presentación, handlers del `State` y humo de la app) pasan con comandos y resultados registrados;
 - existe un procedimiento manual de navegador con resultados esperados y observados;

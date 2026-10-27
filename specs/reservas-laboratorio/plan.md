@@ -211,18 +211,20 @@ Crear reserva = verificar solapamiento + insertar dentro de **una transacción**
 
 ## 8. Interfaz Reflex
 
-Una página principal (`/`) con tres zonas:
+Una página principal (`/`) con tres pestañas controladas por `State.pestana_activa`: «Reservar» (activa por defecto), «Disponibilidad» y «Reservas». La separación y los mensajes independientes son una decisión humana del Paso 26, tomada después de revisar el código de la interfaz.
 
-1. **Disponibilidad**: selector de unidad, inicio y fin; botón «Consultar» → mensaje «Disponible» / «No disponible: …» / error de validación.
-2. **Reservar**: selector de unidad, solicitante, inicio y fin; botón «Reservar» → confirmación con ID o mensaje de error.
-3. **Reservas**: tabla ordenada por inicio y luego ID, con ID, unidad, solicitante, inicio, fin y estado, filtros por unidad y estado, y botón «Cancelar» en las reservas activas (las canceladas siguen visibles).
+1. **Reservar**: selector de unidad, solicitante, inicio y fin; botón «Reservar» → confirmación con ID o mensaje de error en elementos propios del formulario.
+2. **Disponibilidad**: selector de unidad, inicio y fin; botón «Consultar» → mensaje «Disponible» / «No disponible: …» / error de validación en elementos propios del formulario.
+3. **Reservas**: tabla ordenada por inicio y luego ID, con ID, unidad, solicitante, inicio, fin y estado, filtros por unidad y estado, y botón «Cancelar» en las reservas activas (las canceladas siguen visibles); los mensajes de cancelación tienen sus propios elementos.
 
 Comportamiento del `State`:
 
-- Vars de formulario y de mensajes (`mensaje_exito`, `mensaje_error`) con tipos explícitos; lista de reservas cargada desde el servicio.
+- Vars de formulario, `pestana_activa` y mensajes independientes (`mensaje_exito_reserva`, `mensaje_error_reserva`, `mensaje_exito_disponibilidad`, `mensaje_error_disponibilidad`, `mensaje_exito_cancelacion`, `mensaje_error_cancelacion`) con tipos explícitos; lista de reservas cargada desde el servicio.
+- `cambiar_pestana` solo acepta las tres pestañas conocidas y actualiza `pestana_activa`.
 - Los handlers son **delgados**: llaman a funciones de `reservas_ui/[presentacion.py](http://presentacion.py)` (que reciben el servicio y devuelven mensajes y filas listos para mostrar) y asignan el resultado a las vars. Así la lógica de la UI se prueba sin levantar Reflex y los handlers se prueban con una BD temporal.
 - `on_load` y cada handler que modifique datos recargan la lista desde SQLite.
-- Los handlers capturan las excepciones de dominio (§9) y las convierten en `mensaje_error`; ninguna excepción llega al usuario como traza.
+- Cada operación limpia y actualiza solo los mensajes de su formulario; no usa un par de mensajes global.
+- Los handlers capturan las excepciones de dominio (§9) y las convierten en el mensaje del formulario correspondiente; ninguna excepción llega al usuario como traza.
 - El inventario de unidades para el selector se lee con el servicio.
 
 Mantenimiento:
@@ -274,13 +276,13 @@ Interfaz Reflex (pruebas **automáticas**, sin navegador):
 | Qué se verifica      | Archivo                                             | Casos mínimos                                                                                                                                                                                                                                                                                                                                                                                          |
 | -------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Capa de presentación | `test_ui_[presentacion.py](http://presentacion.py)` | Cada excepción de dominio → mensaje esperado; éxito de reservar → mensaje con ID; filas con estado ACTIVA/CANCELADA; consulta «disponible» / «no disponible»                                                                                                                                                                                                                                           |
-| Handlers del `State` | `test_ui_[estado.py](http://estado.py)`             | `on_load` carga unidades y reservas; reservar válido actualiza la lista; reservar con solapamiento deja `mensaje_error` y no cambia la lista; límites consecutivos aceptados; cancelar mantiene la fila como CANCELADA y libera el horario; filtros por unidad y estado; tras reservar con éxito se limpian solicitante, inicio y fin (se conserva la unidad) y tras un error se conservan los valores |
-| Humo de la app       | `test_ui_[humo.py](http://humo.py)`                 | `reservas_ui` se importa, la página `/` está registrada, el `State` declara todas sus vars                                                                                                                                                                                                                                                                                                             |
+| Handlers del `State` | `test_ui_[estado.py](http://estado.py)`             | `on_load` carga unidades y reservas; reservar válido actualiza la lista; reservar con solapamiento deja `mensaje_error_reserva` y no cambia la lista; límites consecutivos aceptados; cancelar mantiene la fila como CANCELADA y libera el horario; filtros por unidad y estado; tras reservar con éxito se limpian solicitante, inicio y fin (se conserva la unidad) y tras un error se conservan los valores; `cambiar_pestana` acepta solo pestañas conocidas; los mensajes de reserva, disponibilidad y cancelación son independientes |
+| Humo de la app       | `test_ui_[humo.py](http://humo.py)`                 | `reservas_ui` se importa, la página `/` está registrada, el `State` declara todas sus vars y la interfaz incluye las tres pestañas y los seis elementos de mensaje                                                                                                                                                                                                                                      |
 
 
 Reglas para estas pruebas: BD temporal por prueba, reloj fijo, **sin parchear vars de clase** (ver §2) y sin levantar el servidor. La técnica concreta para invocar los handlers (instanciar el `State` y llamar a la función del handler) se confirma contra la documentación de Reflex 0.10 al ejecutar la tarea y se registra en `docs/agent/[progreso.md](http://progreso.md)`.
 
-Además, un **procedimiento manual reproducible** en el navegador con resultados esperados y observados (reservar 10:00–11:00 en MIC-01; rechazo de 10:30–11:30; aceptación de 11:00–12:00; reserva simultánea en MIC-02; cancelación y liberación; persistencia tras reiniciar `reflex run`). El flujo completo de navegador (clics reales) no se automatiza y se declara en el README como limitación.
+Además, un **procedimiento manual reproducible** en el navegador con resultados esperados y observados (reservar 10:00–11:00 en MIC-01; rechazo de 10:30–11:30; aceptación de 11:00–12:00; reserva simultánea en MIC-02; cancelación y liberación; persistencia tras reiniciar `reflex run`; cambio entre las tres pestañas y conservación de los mensajes propios de cada formulario). El flujo completo de navegador (clics reales) no se automatiza y se declara en el README como limitación hasta el Paso 27.
 
 Registrar en `docs/agent/[progreso.md](http://progreso.md)` el comando, versiones (Python, Reflex, pytest) y resultado real de cada ejecución.
 
