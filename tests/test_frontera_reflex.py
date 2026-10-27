@@ -1,4 +1,5 @@
 """Comprobación de frontera de capas."""
+
 from __future__ import annotations
 
 import ast

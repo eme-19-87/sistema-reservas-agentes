@@ -1,4 +1,5 @@
 """Repositorio SQLite para unidades y reservas."""
+
 from __future__ import annotations
 
 import os
@@ -45,7 +46,8 @@ CREATE TABLE IF NOT EXISTS reservas (
   CHECK (inicio < fin)
 );
 
-CREATE INDEX IF NOT EXISTS idx_reservas_unidad_estado ON reservas(unidad_id, estado, inicio);
+CREATE INDEX IF NOT EXISTS idx_reservas_unidad_estado
+ON reservas(unidad_id, estado, inicio);
 """
 
 
@@ -55,7 +57,9 @@ def crear_esquema(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
-def sembrar_unidades(conn: sqlite3.Connection, inventario: list[dict[str, Any]] | None = None) -> None:
+def sembrar_unidades(
+    conn: sqlite3.Connection, inventario: list[dict[str, Any]] | None = None
+) -> None:
     """Siembra las unidades desde el inventario de forma idempotente."""
     if inventario is None:
         inventario = cargar_inventario()
@@ -73,7 +77,9 @@ def sembrar_unidades(conn: sqlite3.Connection, inventario: list[dict[str, Any]] 
     conn.commit()
 
 
-def inicializar_bd(ruta: Path | str | None = None, inventario: list[dict[str, Any]] | None = None) -> Path:
+def inicializar_bd(
+    ruta: Path | str | None = None, inventario: list[dict[str, Any]] | None = None
+) -> Path:
     """Inicializa la base de datos creando esquema y sembrando unidades."""
     if ruta is None:
         ruta_bd_obj = ruta_bd()

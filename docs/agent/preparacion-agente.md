@@ -141,3 +141,28 @@ de lo que ejecutó.
 - La comprobación de clics reales en el navegador es manual y no se automatiza.
 - El skill `reflex-rules` no se carga automáticamente como skill del arnés; su cumplimiento
   depende de consultarlo y verificarlo en cada tarea de interfaz.
+
+## 10. Actualización al 2026-10-26
+
+El entorno cambió después de la preparación inicial. Estado observado al completar el
+Paso 23:
+
+| Elemento | Valor |
+| --- | --- |
+| Arnés | OpenCode, modo código |
+| Modelo | Big Pickle, `opencode/big-pickle`, proveedor OpenCode |
+| Versión del modelo | No visible desde el entorno |
+| Sistema operativo | Windows; PowerShell |
+| Rama | `features_documentacion` |
+| Python | 3.13.11 en `.venv` |
+| Reflex | 0.10.0 |
+| pytest / ruff | 8.3.4 / 0.8.4 |
+| Red | Instalación inicial; documentación y pruebas locales |
+
+Las condiciones iniciales de Python no disponible y Reflex sin instalar se resolvieron en
+las sesiones posteriores; el detalle está en `docs/agent/progreso.md`. La sección 1
+conserva el registro histórico del 2026-10-22 y esta sección es la referencia vigente
+para el entorno.
+
+En este paso no se modificaron `spec.md` ni `plan.md`, no se reinició la base, no se hizo
+`git push` y no se usaron credenciales ni red.

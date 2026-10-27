@@ -64,3 +64,6 @@ Thumbs.db
 
 #código producido por Sonarqube
 .scannerwork*
+
+# Evidencia local de la comprobacion en navegador (Paso 25)
+.evidencia/
