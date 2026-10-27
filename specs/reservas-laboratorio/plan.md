@@ -247,7 +247,7 @@ Excepciones de dominio: `UnidadDesconocida`, `SolicitanteInvalido`, `FechaInvali
 - Archivo SQLite `data/reservas.db` (ignorado por Git). No se usa la base `reflex.db` de Reflex porque no se definen `rx.Model`.
 - `init-db` crea el esquema y siembra unidades desde `data/inventario.json` sin tocar reservas existentes.
 - `PRAGMA foreign_keys = ON` en cada conexión.
-- Persistencia verificada: crear activas + cancelada → cerrar → reabrir → comparar contenido (automática en `test_[persistencia.py](http://persistencia.py)`) y, de forma manual, reservar/cancelar desde la UI, detener `reflex run`, volver a ejecutarlo y comprobar el contenido (`docs/agent/[verificacion-persistencia.md](http://verificacion-persistencia.md)`).
+- Persistencia verificada: crear activas + cancelada → cerrar → reabrir → comparar contenido (automática en `test_[persistencia.py](http://persistencia.py)` y en RF-11 de `e2e/test_requisitos.py`); el procedimiento manual histórico está en `docs/agent/[verificacion-persistencia.md](http://verificacion-persistencia.md)`.
 
 ## 11. Estrategia de pruebas
 
@@ -282,7 +282,13 @@ Interfaz Reflex (pruebas **automáticas**, sin navegador):
 
 Reglas para estas pruebas: BD temporal por prueba, reloj fijo, **sin parchear vars de clase** (ver §2) y sin levantar el servidor. La técnica concreta para invocar los handlers (instanciar el `State` y llamar a la función del handler) se confirma contra la documentación de Reflex 0.10 al ejecutar la tarea y se registra en `docs/agent/[progreso.md](http://progreso.md)`.
 
-Además, un **procedimiento manual reproducible** en el navegador con resultados esperados y observados (reservar 10:00–11:00 en MIC-01; rechazo de 10:30–11:30; aceptación de 11:00–12:00; reserva simultánea en MIC-02; cancelación y liberación; persistencia tras reiniciar `reflex run`; cambio entre las tres pestañas y conservación de los mensajes propios de cada formulario). El flujo completo de navegador (clics reales) no se automatiza y se declara en el README como limitación hasta el Paso 27.
+Además, la suite **Playwright** `e2e/test_requisitos.py` automatiza el flujo real en
+Chromium headless: crear 10:00–11:00 en MIC-01; rechazo de 10:30–11:30; aceptación de
+11:00–12:00; reserva simultánea en MIC-02; cancelación y liberación; persistencia tras
+reiniciar `reflex run`; cambio entre las tres pestañas y conservación de los mensajes
+propios de cada formulario. La suite levanta un servidor aislado en los puertos 3020/8020
+con una base temporal, de modo que no toca `data/reservas.db`. Los resultados manuales
+anteriores siguen registrados en `docs/agent/[progreso.md](http://progreso.md)`.
 
 Registrar en `docs/agent/[progreso.md](http://progreso.md)` el comando, versiones (Python, Reflex, pytest) y resultado real de cada ejecución.
 
@@ -307,7 +313,7 @@ Una tarea está terminada cuando:
 
 - cumple [`spec.md`](http://spec.md) y respeta este plan;
 - las pruebas correspondientes pasan (comando y resultado registrados) y `ruff check .` no reporta errores;
-- si toca la interfaz, `reflex run` arranca y la comprobación manual registrada coincide con lo esperado;
+- si toca la interfaz, la suite Playwright y/o la comprobación manual registrada coincide con lo esperado;
 - no quedan errores bloqueantes;
 - su checkbox se actualiza en [`tasks.md`](http://tasks.md) y hay una entrada en `docs/agent/[progreso.md](http://progreso.md)`.
 

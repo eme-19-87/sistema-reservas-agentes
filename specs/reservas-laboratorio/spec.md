@@ -337,15 +337,19 @@ Comando: `python -m reservas init-db [--reset] [--yes]`.
 | RF-08 | La cancelación libera el intervalo                                             | `test_[cancelacion.py](http://cancelacion.py)`                          |
 | RF-09 | Una reserva cancelada no bloquea la disponibilidad                             | `test_[disponibilidad.py](http://disponibilidad.py)`                    |
 | RF-10 | Disponibilidad y reserva comparten reglas                                      | `test_[disponibilidad.py](http://disponibilidad.py)`                    |
-| RF-11 | Activas y canceladas persisten tras cerrar y reabrir                           | `test_[persistencia.py](http://persistencia.py)` y procedimiento manual |
+| RF-11 | Activas y canceladas persisten tras cerrar y reabrir                           | `test_[persistencia.py](http://persistencia.py)` y `e2e/test_requisitos.py` |
 | RF-12 | El ID de reserva no se reutiliza                                               | `test_[repositorio.py](http://repositorio.py)`                          |
-| RF-13 | `init-db` es idempotente y `--reset` borra reservas                            | `test_[cli.py](http://cli.py)`                                          |
-| RF-14 | El dominio no depende de Reflex                                                | `test_frontera_[reflex.py](http://reflex.py)`                           |
+| RF-13 | `init-db` es idempotente y `--reset` borra reservas                            | `test_[cli.py](http://cli.py)` y `e2e/test_requisitos.py`               |
+| RF-14 | El dominio no depende de Reflex                                                | `test_frontera_[reflex.py](http://reflex.py)` y `e2e/test_requisitos.py` |
 | RF-15 | La capa de presentación mapea cada error de dominio a su mensaje               | `test_ui_[presentacion.py](http://presentacion.py)`                     |
 | RF-16 | Los handlers del `State` consultan, reservan, cancelan y filtran correctamente | `test_ui_[estado.py](http://estado.py)`                                 |
 | RF-17 | La app Reflex se importa y registra la página `/`                              | `test_ui_[humo.py](http://humo.py)`                                     |
-| RF-18 | El flujo completo funciona en el navegador                                     | comprobación manual con resultados esperados y observados               |
-| RF-19 | Reserva, disponibilidad y reservas están en tres pestañas, con mensajes propios por formulario | `test_ui_[humo.py](http://humo.py)`, `test_ui_[estado.py](http://estado.py)` y comprobación manual |
+| RF-18 | El flujo completo funciona en el navegador                                     | `e2e/test_requisitos.py`                                                |
+| RF-19 | Reserva, disponibilidad y reservas están en tres pestañas, con mensajes propios por formulario | `e2e/test_requisitos.py`, `test_ui_[humo.py](http://humo.py)` y `test_ui_[estado.py](http://estado.py)` |
+
+La suite `e2e/test_requisitos.py` contiene 19 pruebas Playwright, una por RF: usa un
+servidor Reflex aislado, una base temporal y Chromium headless. RF-13 y RF-14 se validan
+también con la CLI y un análisis estático, respectivamente.
 
 
 ---

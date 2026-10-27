@@ -1512,3 +1512,92 @@ $ node .evidencia/verificar-paso26.js
   `.evidencia/paso26-03-reservas.png` (ignoradas por Git).
 - `.evidencia/reservas-paso26.db` con la reserva 1 cancelada.
 - `docs/agent/progreso.md`: este registro.
+
+## Pruebas de navegador con Playwright (Paso 27)
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Objetivo:** instalar Playwright en `.venv`, preparar una prueba de navegador por cada
+requisito verificable RF-01 a RF-19, ejecutar la suite hasta que todas pasaran y registrar
+la decisión y la evidencia en la documentación.
+
+**Decisión humana:** después de revisar el código y la cobertura existente, la persona
+responsable decidió incorporar Playwright como suite E2E independiente. La suite usa un
+servidor Reflex aislado y una base temporal para no interferir con `data/reservas.db`, y
+mantiene `python -m pytest` como suite unitaria rápida, sin navegador.
+
+**Trabajo realizado:**
+
+- Se instaló `playwright==1.64.1` en `.venv` y se descargó Chromium 156.0.8078.4 con
+  `playwright install chromium` (incluye Chromium headless y FFmpeg de Playwright).
+- Se añadió `playwright==1.64.1` a `requirements-dev.txt`.
+- Se creó `e2e/servidor.py`: administra un `reflex run` en 3020/8020, usa
+  `.evidencia/paso27/reservas-e2e.db`, reinicia el proceso para RF-11 y ejecuta la CLI
+  contra la misma base.
+- Se creó `e2e/pagina.py`: acciones de alto nivel para pestañas, selectores Radix,
+  formularios, tabla, cancelación, filtros y mensajes.
+- Se creó `e2e/conftest.py`: fixtures de servidor, Playwright, Chromium y página limpia por
+  requisito.
+- Se creó `e2e/test_requisitos.py` con 19 pruebas, una por RF:
+  RF-01 inventario; RF-02 alta activa; RF-03 solapamiento; RF-04 límites consecutivos;
+  RF-05 unidades simultáneas; RF-06 entradas inválidas; RF-07 cancelación conserva datos;
+  RF-08 libera el intervalo; RF-09 cancelada no bloquea; RF-10 mismas reglas; RF-11
+  persistencia tras reiniciar el servidor; RF-12 IDs no reutilizados; RF-13 `init-db` y
+  `--reset`; RF-14 frontera sin Reflex; RF-15 mensajes de error; RF-16 handlers y filtros;
+  RF-17 página raíz; RF-18 flujo completo; RF-19 tres pestañas y mensajes propios.
+- RF-13 combina la interfaz con la CLI y RF-14 complementa la navegación con un análisis
+  estático de imports; las demás pruebas usan Chromium headless y clics reales.
+- Se actualizaron `README.md`, `spec.md`, `plan.md` y `tasks.md` para reflejar la suite,
+  los comandos y la decisión humana, y se confirmó la consistencia entre esos documentos.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .\.venv\Scripts\playwright.exe install chromium
+# Chromium 156.0.8078.4 (Playwright chromium v1248) instalado
+$ .\.venv\Scripts\python.exe -m pytest e2e -v
+19 passed in 136.96s (0:02:16)
+$ .\.venv\Scripts\python.exe -m pytest -o addopts="" -q
+72 passed in 13.56s
+$ .\.venv\Scripts\python.exe -m ruff check .
+All checks passed!
+$ .\.venv\Scripts\python.exe -m ruff format --check .
+34 files already formatted
+$ .\.venv\Scripts\python.exe -m reflex compile
+Success: App compiled successfully in 3.668 seconds.
+```
+
+**Resultado real:** la suite E2E pasó completa (19/19) y la suite unitaria siguió en
+verde (72/72). No se modificó `data/reservas.db`: las pruebas usan una base temporal. El
+servidor de pruebas y Chromium quedaron detenidos al terminar. Los logs se guardaron en
+`.evidencia/paso27/` (ignorado por Git).
+
+**Pasos no ejecutados o descartados:**
+
+- No se hizo una nueva sesión manual con CDP: la verificación de navegador quedó
+  automatizada con Playwright, y la evidencia manual de los Pasos 20, 21, 25 y 26 se
+  conserva como historial.
+- No se probaron sesiones concurrentes ni concurrencia distribuida; siguen fuera del
+  alcance.
+- No se hizo `git push`; requiere aprobación humana.
+
+**Decisiones:**
+
+- La suite E2E vive fuera de `tests/` para que `python -m pytest` siga ejecutando solo las
+  pruebas unitarias rápidas; se ejecuta explícitamente con `python -m pytest e2e`.
+- Se usa una base temporal en `.evidencia/paso27/` y puertos 3020/8020 para aislar la
+  prueba de la aplicación local y de `data/reservas.db`.
+- Se instaló Chromium en lugar de depender de un navegador del sistema, para que la suite
+  sea reproducible con `playwright install chromium`.
+- RF-13 y RF-14 no tienen una superficie puramente web; se validan en la misma suite con
+  la CLI y un análisis estático, sin simular una cobertura de navegador que no existe.
+
+**Evidencia:**
+
+- `e2e/test_requisitos.py`, `e2e/conftest.py`, `e2e/pagina.py` y `e2e/servidor.py`.
+- `.evidencia/paso27/pytest-e2e.log`, `.evidencia/paso27/servidor.log` y
+  `.evidencia/paso27/reservas-e2e.db` (ignorados por Git).
+- `requirements-dev.txt`, `README.md`, `spec.md`, `plan.md` y `tasks.md`.
+- `docs/agent/progreso.md`: este registro.

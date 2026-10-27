@@ -106,7 +106,7 @@
   - Los nuevos códigos no deben contener code smell.
   - Dejar registro de lo realizado en los documentos [progreso.md](http://progreso.md) y [readme.md](http://readme.md). Aclarar que esta fue una decisión humana después de revisar el código.
   - Confirmar la consistencia entre los archivos de documentación.
-- \[ \] **Paso 27 — Implementando Playwright Para Las Pruebas**
+- \[x\] **Paso 27 — Implementando Playwright Para Las Pruebas**
   - Instala Playwright en el ambiente virtual .venv.
   - Prepara los scripts de test en Playwright para cada uno de los requisitos verificables indicados en [spec.md](http://spec.md)
   - No avances hasta no asegurarte que cada una de los tests pasó satisfactoriamente.
