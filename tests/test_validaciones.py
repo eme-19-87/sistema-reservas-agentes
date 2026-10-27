@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import pytest
@@ -30,89 +31,81 @@ INICIO_VALIDO = "2026-10-22T11:00"
 FIN_VALIDO = "2026-10-22T12:00"
 
 
-def _caso_invalido(
-    excepcion: type[Exception],
-    *,
-    caso_id: str,
-    unidad: str = "MIC-01",
-    inicio: str = INICIO_VALIDO,
-    fin: str = FIN_VALIDO,
-    solicitante: str = "Ana",
-):
-    """Construye un caso de validación rechazada sin repetir los datos comunes."""
-    return pytest.param(unidad, inicio, fin, solicitante, excepcion, id=caso_id)
+@dataclass(frozen=True)
+class CasoInvalido:
+    """Datos de un escenario de validación que debe ser rechazado."""
+
+    excepcion: type[Exception]
+    unidad: str = "MIC-01"
+    inicio: str = INICIO_VALIDO
+    fin: str = FIN_VALIDO
+    solicitante: str = "Ana"
 
 
 CASOS_INVALIDOS = [
-    _caso_invalido(UnidadDesconocida, unidad="NOEXISTE", caso_id="unidad-desconocida"),
-    _caso_invalido(
-        SolicitanteInvalido,
-        solicitante="",
-        caso_id="solicitante-vacio",
+    pytest.param(
+        CasoInvalido(UnidadDesconocida, unidad="NOEXISTE"),
+        id="unidad-desconocida",
     ),
-    _caso_invalido(
-        SolicitanteInvalido,
-        solicitante="   ",
-        caso_id="solicitante-solo-espacios",
+    pytest.param(
+        CasoInvalido(SolicitanteInvalido, solicitante=""),
+        id="solicitante-vacio",
     ),
-    _caso_invalido(
-        SolicitanteInvalido,
-        solicitante="12345",
-        caso_id="solicitante-solo-numeros",
+    pytest.param(
+        CasoInvalido(SolicitanteInvalido, solicitante="   "),
+        id="solicitante-solo-espacios",
     ),
-    _caso_invalido(
-        SolicitanteInvalido,
-        solicitante="Ana@Lopez",
-        caso_id="solicitante-caracteres-especiales",
+    pytest.param(
+        CasoInvalido(SolicitanteInvalido, solicitante="12345"),
+        id="solicitante-solo-numeros",
     ),
-    _caso_invalido(
-        FechaInvalida,
-        inicio="22/10/2026 11:00",
-        caso_id="fecha-formato-invalido",
+    pytest.param(
+        CasoInvalido(SolicitanteInvalido, solicitante="Ana@Lopez"),
+        id="solicitante-caracteres-especiales",
     ),
-    _caso_invalido(
-        FechaInvalida,
-        inicio="2026-10-22T11:00Z",
-        caso_id="fecha-con-offset",
+    pytest.param(
+        CasoInvalido(FechaInvalida, inicio="22/10/2026 11:00"),
+        id="fecha-formato-invalido",
     ),
-    _caso_invalido(
-        FechaInvalida,
-        inicio="2026-02-30T11:00",
-        fin="2026-02-30T12:00",
-        caso_id="fecha-calendario-invalida",
+    pytest.param(
+        CasoInvalido(FechaInvalida, inicio="2026-10-22T11:00Z"),
+        id="fecha-con-offset",
     ),
-    _caso_invalido(
-        LimiteExcedido,
-        inicio="2026-10-22T09:59",
-        fin="2026-10-22T10:30",
-        caso_id="fecha-pasada",
+    pytest.param(
+        CasoInvalido(
+            FechaInvalida,
+            inicio="2026-02-30T11:00",
+            fin="2026-02-30T12:00",
+        ),
+        id="fecha-calendario-invalida",
     ),
-    _caso_invalido(
-        LimiteExcedido,
-        inicio="2026-10-22T10:00",
-        fin="2026-10-22T18:01",
-        caso_id="duracion-mayor-a-8-horas",
+    pytest.param(
+        CasoInvalido(
+            LimiteExcedido,
+            inicio="2026-10-22T09:59",
+            fin="2026-10-22T10:30",
+        ),
+        id="fecha-pasada",
+    ),
+    pytest.param(
+        CasoInvalido(
+            LimiteExcedido,
+            inicio="2026-10-22T10:00",
+            fin="2026-10-22T18:01",
+        ),
+        id="duracion-mayor-a-8-horas",
     ),
 ]
 
 
-@pytest.mark.parametrize(
-    ("unidad", "inicio", "fin", "solicitante", "excepcion"),
-    CASOS_INVALIDOS,
-)
-def test_solicitudes_invalidas(
-    unidad: str,
-    inicio: str,
-    fin: str,
-    solicitante: str,
-    excepcion: type[Exception],
-) -> None:
-    with pytest.raises(excepcion):
+@pytest.mark.parametrize("caso", CASOS_INVALIDOS)
+def test_solicitudes_invalidas(caso: CasoInvalido) -> None:
+    with pytest.raises(caso.excepcion):
         validar_solicitud_intervalo(
-            unidad,
-            inicio,
-            fin,
-            solicitante,
+            caso.unidad,
+            caso.inicio,
+            caso.fin,
+            caso.solicitante,
             ahora=AHORA,
             inventario=inventario_test(),
         )

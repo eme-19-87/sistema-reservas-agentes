@@ -1657,3 +1657,53 @@ ningún archivo fuera de `tests/test_validaciones.py` y `docs/agent/progreso.md`
 - `tests/test_validaciones.py`: `_caso_invalido`, `CASOS_INVALIDOS` y
   `test_solicitudes_invalidas`.
 - `docs/agent/progreso.md`: este registro.
+
+## Reducción de argumentos en pruebas de validación
+
+**Estado:** completado.
+
+**Fecha:** 2026-10-26.
+
+**Solicitud humana:** eliminar el smell **Excess Number Of Function Arguments** de
+`_caso_invalido` y `test_solicitudes_invalidas` sin perder los diez escenarios
+parametrizados.
+
+**Decisión humana:** la refactorización fue una decisión humana tomada después de
+revisar el reporte de smells. Se eligió agrupar los datos de cada escenario en un objeto
+inmutable y hacer que la prueba reciba un único argumento, en lugar de mantener cinco o
+seis parámetros sueltos o volver a duplicar los casos.
+
+**Trabajo realizado:**
+
+- Se eliminó `_caso_invalido`, que recibía seis argumentos.
+- Se añadió la dataclass inmutable `CasoInvalido` con los datos del escenario y valores
+  por defecto para unidad, intervalo y solicitante.
+- `test_solicitudes_invalidas` ahora recibe solo `caso: CasoInvalido` y conserva los diez
+  casos con sus identificadores descriptivos.
+- No se modificó código de producción ni el comportamiento esperado de las validaciones.
+
+**Verificación ejecutada en esta sesión:**
+
+```text
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py -v
+16 passed in 0.23s
+$ .\.venv\Scripts\python.exe -m pytest tests/test_validaciones.py --collect-only -q -o addopts=""
+16 tests collected in 0.02s
+$ .\.venv\Scripts\python.exe -m pytest -o addopts="" -q
+72 passed in 13.80s
+$ .\.venv\Scripts\python.exe -m ruff check .
+All checks passed!
+$ .\.venv\Scripts\python.exe -m ruff format --check .
+34 files already formatted
+```
+
+**Resultado real:** `_caso_invalido` ya no existe y `test_solicitudes_invalidas` recibe
+un solo argumento; se conservan los diez escenarios y las 72 pruebas totales pasan. No se
+modificó ningún archivo fuera de `tests/test_validaciones.py` y
+`docs/agent/progreso.md`.
+
+**Evidencia:**
+
+- `tests/test_validaciones.py`: `CasoInvalido`, `CASOS_INVALIDOS` y
+  `test_solicitudes_invalidas`.
+- `docs/agent/progreso.md`: este registro.
